@@ -1,0 +1,1200 @@
+{
+  "version": "1.0",
+  "modules": [
+    {
+      "id": "module_passwords",
+      "title": "Guardianes de la Contraseña",
+      "subtitle": "Crea llaves maestras imposibles de adivinar",
+      "description": "Tu contraseña es como la llave de tu casa digital. Aprende los secretos para forjar contraseñas indestructibles que ningún robot ni espía pueda descifrar.",
+      "icon": "vpn_key",
+      "accentColor": "#00D2B4",
+      "badgeId": "badge_password_master",
+      "badgeTitle": "Maestro de las Llaves",
+      "badgeDescription": "¡Creaste contraseñas súper resistentes y aprendiste a proteger tus cuentas!",
+      "challenges": [
+        {
+          "id": "pwd_5",
+          "title": "La forja de llaves",
+          "type": "FORGE_KEY",
+          "storyContext": "Bienvenido a la forja de Guardián Key. Aquí las contraseñas son llaves que se forjan a martillazos… y un ladrón muy astuto pondrá a prueba cada una.",
+          "question": "🔨 Forja llaves resistentes y defiéndelas del ladrón en 4 rondas.",
+          "points": 400,
+          "educationalTip": "Una llave fuerte es larga y mezcla mayúsculas, minúsculas, números y símbolos; el truco de la frase clave (GatoAzulSalta2026!) la hace fácil de recordar. Nunca uses tu nombre, tu mascota ni tu cumpleaños. Tu llave es solo tuya (y de tus papás), y cada cuenta necesita una distinta.",
+          "forge": {
+            "rounds": [
+              {
+                "id": "r1",
+                "title": "Tu primera llave",
+                "goal": "Estás creando tu personaje en un videojuego espacial. Forja una llave para proteger tus gemas y tesoros.",
+                "minLevel": 2,
+                "blocks": [
+                  {
+                    "id": "b1",
+                    "text": "Luna"
+                  },
+                  {
+                    "id": "b2",
+                    "text": "Firulais",
+                    "caption": "tu mascota",
+                    "isTrap": true,
+                    "feedback": "Los nombres de mascotas son lo primero que prueban los ladrones: ¡muchas veces aparecen en tus fotos!"
+                  },
+                  {
+                    "id": "b3",
+                    "text": "2026"
+                  },
+                  {
+                    "id": "b4",
+                    "text": "Planeta"
+                  },
+                  {
+                    "id": "b5",
+                    "text": "*"
+                  },
+                  {
+                    "id": "b6",
+                    "text": "123456",
+                    "caption": "la más usada",
+                    "isTrap": true,
+                    "feedback": "123456 es la contraseña más usada del mundo. Los robots ladrones la prueban en menos de un segundo."
+                  },
+                  {
+                    "id": "b7",
+                    "text": "Sol"
+                  },
+                  {
+                    "id": "b8",
+                    "text": "7"
+                  },
+                  {
+                    "id": "b9",
+                    "text": "2014",
+                    "caption": "tu cumpleaños",
+                    "isTrap": true,
+                    "feedback": "Tu año o fecha de cumpleaños es fácil de averiguar: lo saben tus amigos, conocidos y a veces está en internet."
+                  },
+                  {
+                    "id": "b10",
+                    "text": "!"
+                  },
+                  {
+                    "id": "b11",
+                    "text": "Cohete"
+                  }
+                ]
+              },
+              {
+                "id": "r2",
+                "title": "El amigo que pide tu llave",
+                "emoji": "🏊",
+                "situation": "Tu mejor amigo te escribe: '¡Pásame tu llave del juego! Te subo de nivel mientras estás en la clase de natación 🎮'",
+                "options": [
+                  {
+                    "id": "a",
+                    "text": "Se la doy: es mi mejor amigo y confío en él",
+                    "isGood": false,
+                    "feedback": "Aunque confíes mucho en tu amigo, él podría dejar la sesión abierta en otro aparato o compartirla sin querer. ¡Y el ladrón estaba esperando justo eso!"
+                  },
+                  {
+                    "id": "b",
+                    "text": "Le explico con cariño que las llaves son personales, y jugamos juntos cuando vuelva",
+                    "isGood": true,
+                    "feedback": "¡Respuesta de ciber-experto! Tu llave es solo tuya (y de tus papás). La verdadera amistad respeta la privacidad."
+                  },
+                  {
+                    "id": "c",
+                    "text": "La escribo en un papel y se la dejo en su mochila",
+                    "isGood": false,
+                    "feedback": "Un papel con tu llave se puede perder o cualquiera lo puede encontrar. ¡El ladrón lo encontró primero!"
+                  }
+                ]
+              },
+              {
+                "id": "r3",
+                "title": "Una cuenta nueva",
+                "emoji": "📺",
+                "situation": "Vas a crear una cuenta en una app de videos. Te pide una contraseña… ¿qué llave usas?",
+                "options": [
+                  {
+                    "id": "a",
+                    "text": "Forjo una llave nueva y distinta para esta cuenta",
+                    "isGood": true,
+                    "feedback": "¡Exacto! Si una app tiene una falla y descubren esa llave, tus otras cuentas siguen a salvo."
+                  },
+                  {
+                    "id": "b",
+                    "text": "Uso la misma llave del juego, así no se me olvida",
+                    "isGood": false,
+                    "feedback": "Si el ladrón descubre una llave repetida, ¡puede abrir TODAS tus cuentas con ella! Los intrusos prueban la misma clave en todos lados."
+                  },
+                  {
+                    "id": "c",
+                    "text": "Le pongo una cortita, total es solo para ver videos",
+                    "isGood": false,
+                    "feedback": "Todas tus cuentas merecen una buena llave. Una corta se rompe en segundos, y desde ahí podrían intentar entrar a las demás."
+                  }
+                ]
+              },
+              {
+                "id": "r4",
+                "title": "El truco de la frase clave",
+                "goal": "Ahora, la llave maestra. Truco secreto: une 3 o 4 palabras divertidas como una frase (Gato + Azul + Salta…) y agrégale un número y un símbolo. ¡Larga, fácil de recordar e indestructible!",
+                "minLevel": 3,
+                "blocks": [
+                  {
+                    "id": "k1",
+                    "text": "Gato"
+                  },
+                  {
+                    "id": "k2",
+                    "text": "password123",
+                    "caption": "la clásica",
+                    "isTrap": true,
+                    "feedback": "password123 es de las contraseñas más comunes y peligrosas del mundo: los ladrones la prueban primero."
+                  },
+                  {
+                    "id": "k3",
+                    "text": "Azul"
+                  },
+                  {
+                    "id": "k4",
+                    "text": "Salta"
+                  },
+                  {
+                    "id": "k5",
+                    "text": "42"
+                  },
+                  {
+                    "id": "k6",
+                    "text": "En"
+                  },
+                  {
+                    "id": "k7",
+                    "text": "Sofia",
+                    "caption": "tu nombre",
+                    "isTrap": true,
+                    "feedback": "Tu nombre es lo primero que alguien intentaría. ¡Jamás lo uses en tus llaves!"
+                  },
+                  {
+                    "id": "k8",
+                    "text": "La"
+                  },
+                  {
+                    "id": "k9",
+                    "text": "Luna"
+                  },
+                  {
+                    "id": "k10",
+                    "text": "#"
+                  },
+                  {
+                    "id": "k11",
+                    "text": "2026"
+                  },
+                  {
+                    "id": "k12",
+                    "text": "!"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "module_phishing",
+      "title": "Cazadores de Trampas",
+      "subtitle": "Detecta mensajes falsos y anzuelos digitales",
+      "description": "En internet, algunos mensajes parecen reales pero son anzuelos para engañarte. Aprende a reconocer correos extraños, premios sospechosos y enlaces trampa.",
+      "icon": "phishing",
+      "accentColor": "#FFB800",
+      "badgeId": "badge_phishing_hunter",
+      "badgeTitle": "Cazador de Anzuelos",
+      "badgeDescription": "¡Descubriste todos los trucos de los mensajes sospechosos!",
+      "challenges": [
+        {
+          "id": "phi_3",
+          "title": "¿Seguro o trampa?",
+          "type": "SWIPE_SORT",
+          "storyContext": "Tu bandeja de mensajes está llena. Algunos son de tu familia y amigos, pero otros son anzuelos de estafadores. ¡Es hora de poner a prueba tu olfato de cazador!",
+          "question": "Desliza cada mensaje: a la derecha si es SEGURO, a la izquierda si es una TRAMPA.",
+          "points": 350,
+          "educationalTip": "Las trampas casi siempre tienen algo en común: prisa, premios que no pediste, enlaces raros o te piden datos secretos. Un logo no prueba nada: cualquiera puede copiarlo. Ante la duda: no hagas clic, no lo reenvíes, avisa a un adulto de confianza y bloquea el número.",
+          "safeLabel": "Seguro",
+          "trapLabel": "Trampa",
+          "cards": [
+            {
+              "id": "c1",
+              "sender": "Mamá",
+              "emoji": "👩",
+              "text": "Hijo, ya salí del trabajo. Te recojo en 20 minutos en la entrada del colegio. 😘",
+              "isSafe": true,
+              "feedback": "Es un mensaje normal de alguien que conoces: no pide datos, no tiene enlaces y no te mete prisa."
+            },
+            {
+              "id": "c2",
+              "sender": "Número desconocido",
+              "emoji": "🎁",
+              "text": "¡¡GANASTE una consola nueva!! Reclámala AHORA en bit.ly/consola-gratis antes de que expire 🎮⏰",
+              "isSafe": false,
+              "feedback": "Premio que no pediste + enlace acortado + prisa = anzuelo clásico. Nunca toques esos enlaces."
+            },
+            {
+              "id": "c3",
+              "sender": "Soporte del Juego",
+              "emoji": "🛠️",
+              "text": "Detectamos un problema en tu cuenta. Envíanos tu usuario y contraseña para arreglarlo.",
+              "isSafe": false,
+              "feedback": "Ningún juego ni empresa oficial te pedirá jamás tu contraseña. Ellos no la necesitan."
+            },
+            {
+              "id": "c4",
+              "sender": "Profe Ana",
+              "emoji": "👩‍🏫",
+              "text": "Recuerden traer mañana el libro de ciencias para el experimento. ¡Nos vemos!",
+              "isSafe": true,
+              "feedback": "Un aviso común de tu maestra: no te pide nada secreto ni te manda a ningún sitio extraño."
+            },
+            {
+              "id": "c5",
+              "sender": "Banco Seguro",
+              "emoji": "🏦",
+              "text": "⚠️ Tu tarjeta será BLOQUEADA hoy. Confirma los datos de la tarjeta de tus papás en este enlace.",
+              "isSafe": false,
+              "feedback": "Los bancos no mandan amenazas con prisa ni piden datos por mensaje. Asustarte es parte del truco."
+            },
+            {
+              "id": "c6",
+              "sender": "Tu amigo Leo",
+              "emoji": "🧒",
+              "text": "¿Jugamos fútbol en el parque después de hacer la tarea?",
+              "isSafe": true,
+              "feedback": "Un amigo que conoces invitándote a jugar. Nada sospechoso aquí."
+            },
+            {
+              "id": "c7",
+              "sender": "Número desconocido",
+              "emoji": "💎",
+              "text": "Te regalo 10.000 diamantes para tu juego. Solo dime el código que te llegará por SMS.",
+              "isSafe": false,
+              "feedback": "Los códigos que llegan por SMS son llaves de tus cuentas. Quien te los pide quiere robártelas."
+            },
+            {
+              "id": "c8",
+              "sender": "Abuela",
+              "emoji": "👵",
+              "text": "Mi amor, te mando una foto del pastel que horneé. ¡Ven a probarlo el domingo! 🍰",
+              "isSafe": true,
+              "feedback": "Un mensaje cariñoso de tu familia. ¡Puedes responder tranquilo!"
+            },
+            {
+              "id": "c9",
+              "sender": "Soporte Oficial 🛡️ (con el logo del juego)",
+              "emoji": "📧",
+              "text": "⏳ 01:59:58 — Tu cuenta será CERRADA en 2 horas. Responde con tu usuario y clave para evitarlo.",
+              "isSafe": false,
+              "feedback": "Tener el logo no lo hace real: cualquiera puede copiarlo. Y la cuenta regresiva es solo para asustarte. Ningún juego oficial pide tu clave."
+            },
+            {
+              "id": "c10",
+              "sender": "Número desconocido",
+              "emoji": "📱",
+              "text": "¡Reenvía este mensaje a 10 contactos y ganarás un celular nuevo! 🎉",
+              "isSafe": false,
+              "feedback": "Si lo reenvías, la trampa llega a tus amigos y familia. Lo correcto es borrarlo, bloquear el número y avisar a un adulto."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "module_privacy",
+      "title": "Escudo de Privacidad",
+      "subtitle": "Protege tus datos y tu identidad digital",
+      "description": "Tus fotos, tu dirección y tu escuela son información muy valiosa. Aprende a poner candados a tu vida privada y navegar con total tranquilidad.",
+      "icon": "shield",
+      "accentColor": "#8B5CF6",
+      "badgeId": "badge_privacy_shield",
+      "badgeTitle": "Escudo Impenetrable",
+      "badgeDescription": "¡Sabes perfectamente qué datos cuidar y cómo configurar tu perfil privado!",
+      "challenges": [
+        {
+          "id": "priv_3",
+          "title": "¿Lo comparto o lo guardo?",
+          "type": "SWIPE_SORT",
+          "storyContext": "Estás creando tu perfil en una nueva app de dibujos. Lo primero que haces, junto a tus papás, es ponerlo en Privado. Luego la app te pregunta muchas cosas sobre ti… pero no todas son buena idea para compartir con desconocidos.",
+          "question": "Desliza cada dato: a la derecha si PUEDES compartirlo, a la izquierda si es PRIVADO.",
+          "points": 350,
+          "educationalTip": "Si un dato sirve para encontrarte en la vida real (dónde vives, estudias o estás) o para entrar a tus cuentas, es privado. Y deja tu perfil en Privado, aceptando solo a personas que conozcas en la vida real: así tú decides quién ve lo que publicas.",
+          "safeLabel": "Compartir",
+          "trapLabel": "Privado",
+          "cards": [
+            {
+              "id": "d1",
+              "sender": "Tu color favorito",
+              "emoji": "🎨",
+              "text": "Azul turquesa",
+              "isSafe": true,
+              "feedback": "Tus gustos no dicen dónde estás ni abren tus cuentas. ¡Puedes compartirlos!"
+            },
+            {
+              "id": "d2",
+              "sender": "Tu dirección",
+              "emoji": "🏠",
+              "text": "Calle Los Pinos 245, departamento 3B",
+              "isSafe": false,
+              "feedback": "Tu dirección le dice a cualquiera dónde vives. Solo la saben tu familia y personas de confianza."
+            },
+            {
+              "id": "d3",
+              "sender": "Tu dibujo favorito",
+              "emoji": "🖍️",
+              "text": "Un dragón volando sobre un castillo",
+              "isSafe": true,
+              "feedback": "¡Tus creaciones son para presumir! Solo cuida que no aparezcan datos personales en ellas."
+            },
+            {
+              "id": "d4",
+              "sender": "Tu contraseña",
+              "emoji": "🔑",
+              "text": "dragon2015",
+              "isSafe": false,
+              "feedback": "Tu contraseña es solo tuya (y de tus papás). Nunca la escribas en un perfil ni se la des a nadie."
+            },
+            {
+              "id": "d5",
+              "sender": "Tu colegio",
+              "emoji": "🏫",
+              "text": "Colegio San Martín, 4° grado B",
+              "isSafe": false,
+              "feedback": "Con el nombre de tu colegio, un desconocido podría saber dónde encontrarte cada día."
+            },
+            {
+              "id": "d6",
+              "sender": "Tu apodo de jugador",
+              "emoji": "🦖",
+              "text": "DinoVeloz",
+              "isSafe": true,
+              "feedback": "¡Perfecto! Un apodo que no incluye tu nombre real ni tu edad es la mejor forma de identificarte en internet."
+            },
+            {
+              "id": "d7",
+              "sender": "Dónde estás ahora",
+              "emoji": "📍",
+              "text": "En el parque central, cerca de los columpios",
+              "isSafe": false,
+              "feedback": "Tu ubicación en tiempo real es muy privada. Compártela solo con tu familia."
+            },
+            {
+              "id": "d8",
+              "sender": "Una selfie para tu perfil",
+              "emoji": "📷",
+              "text": "Con tu uniforme del colegio, el escudo bien visible y el letrero de tu calle detrás",
+              "isSafe": false,
+              "feedback": "El escudo dice dónde estudias y el letrero dónde vives. Aunque le pongas filtros, esos datos se siguen viendo."
+            },
+            {
+              "id": "d9",
+              "sender": "La placa del auto de tu familia",
+              "emoji": "🚗",
+              "text": "ABC-1234",
+              "isSafe": false,
+              "feedback": "Con la placa del auto alguien podría saber quién es tu familia y dónde está. Es un dato privado."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "module_cyberbullying",
+      "title": "Comunidad y Respeto Digital",
+      "subtitle": "Convivencia sana y apoyo entre amigos",
+      "description": "Detrás de cada pantalla hay una persona real con sentimientos. Aprende a crear un entorno digital positivo, a frenar el ciberacoso y a pedir ayuda a tiempo.",
+      "icon": "favorite",
+      "accentColor": "#FF6B8B",
+      "badgeId": "badge_kindness_hero",
+      "badgeTitle": "Defensor de la Buena Convivencia",
+      "badgeDescription": "¡Eres un agente que promueve el respeto y sabe frenar el acoso en línea!",
+      "challenges": [
+        {
+          "id": "bul_2",
+          "title": "El chat del grupo",
+          "type": "CHAT_STORY",
+          "storyContext": "Es de noche y el grupo de chat de tu curso empieza a llenarse de mensajes. Algo está pasando con Mateo, tu compañero…",
+          "question": "💬 Lee la conversación y decide qué responder. ¡Tus decisiones cambian cómo se siente Mateo!",
+          "points": 100,
+          "educationalTip": "Ante el ciberacoso: no te rías ni compartas, di con respeto que paren, apoya a quien lo sufre y cuéntaselo a un adulto de confianza. Guardar capturas sirve como prueba.",
+          "chat": {
+            "groupName": "4° B 🏫",
+            "emoji": "💬",
+            "meterLabel": "Cómo se siente Mateo",
+            "meterIcons": [
+              "😭",
+              "😢",
+              "😟",
+              "🙂",
+              "😄"
+            ],
+            "meterStart": 1,
+            "steps": [
+              {
+                "messages": [
+                  {
+                    "from": "Tomi",
+                    "emoji": "😜",
+                    "text": "JAJAJA miren lo que le hice a la foto de Mateo 😂😂"
+                  },
+                  {
+                    "from": "Tomi",
+                    "emoji": "😜",
+                    "text": "📷 [foto de Mateo editada con orejas de burro]"
+                  },
+                  {
+                    "from": "Rodri",
+                    "emoji": "🧑",
+                    "text": "jajaja 🤣 ¡pásenla a otros grupos!"
+                  },
+                  {
+                    "from": "Mateo",
+                    "emoji": "🥺",
+                    "text": "ya paren por favor 😢"
+                  }
+                ],
+                "prompt": "Todos esperan a ver qué haces. ¿Qué escribes?",
+                "choices": [
+                  {
+                    "id": "a",
+                    "text": "JAJAJA buenísima 😂 ¡yo la paso a mi otro grupo!",
+                    "isGood": false,
+                    "feedback": "Reírte y compartir hace que la burla llegue a más personas y lastime aún más a Mateo. Así el ciberacoso crece.",
+                    "reactions": [
+                      {
+                        "from": "Tomi",
+                        "emoji": "😜",
+                        "text": "¡Eso! 😎"
+                      },
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "..."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "text": "(No escribo nada y sigo mirando)",
+                    "isGood": false,
+                    "feedback": "Quedarte callado parece no hacer daño, pero Mateo siente que todos están en su contra. Quienes miran tienen el poder de frenar la burla.",
+                    "reactions": [
+                      {
+                        "from": "Rodri",
+                        "emoji": "🧑",
+                        "text": "jajaja nadie dice nada 🤣"
+                      },
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "nadie me ayuda 😞"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "c",
+                    "text": "Tomi, eso no es gracioso. Mateo pidió que paren. Bórrala, porfa.",
+                    "isGood": true,
+                    "feedback": "¡Qué valiente! Decir con respeto que paren muestra a los demás que la burla no está bien.",
+                    "reactions": [
+                      {
+                        "from": "Vale",
+                        "emoji": "👧",
+                        "text": "Tiene razón. A nadie le gustaría que le hicieran eso."
+                      },
+                      {
+                        "from": "Tomi",
+                        "emoji": "😜",
+                        "text": "uff, qué aburridos 🙄"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "messages": [
+                  {
+                    "from": "Tomi",
+                    "emoji": "😜",
+                    "text": "bueno ya, pero no la voy a borrar 😏"
+                  },
+                  {
+                    "from": "Rodri",
+                    "emoji": "🧑",
+                    "text": "yo ya la guardé jaja"
+                  }
+                ],
+                "prompt": "La foto sigue en el grupo. ¿Qué haces ahora?",
+                "choices": [
+                  {
+                    "id": "a",
+                    "text": "Les respondo con insultos para que aprendan 😡",
+                    "isGood": false,
+                    "feedback": "Responder con insultos agranda la pelea y te convierte en parte del problema. La respuesta al acoso nunca es más acoso.",
+                    "reactions": [
+                      {
+                        "from": "Tomi",
+                        "emoji": "😜",
+                        "text": "¿¿y a ti qué te pasa?? 😡"
+                      },
+                      {
+                        "from": "Rodri",
+                        "emoji": "🧑",
+                        "text": "uyyy se armó 🍿"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "text": "Guardo yo también la foto, por si acaso",
+                    "isGood": false,
+                    "feedback": "Guardar o reenviar la foto ayuda a que la burla siga circulando, aunque no sea tu intención.",
+                    "reactions": [
+                      {
+                        "from": "Rodri",
+                        "emoji": "🧑",
+                        "text": "jaja ya somos dos 😏"
+                      },
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "😢"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "c",
+                    "text": "Le escribo a Mateo por privado para ver cómo está",
+                    "isGood": true,
+                    "feedback": "Un mensaje de apoyo hace sentir a la persona que no está sola. ¡Eso vale muchísimo!",
+                    "reactions": [
+                      {
+                        "text": "📱 Chat privado con Mateo"
+                      },
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "gracias por escribirme… me sentía muy solo 🥺"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "messages": [
+                  {
+                    "from": "Mateo",
+                    "emoji": "🥺",
+                    "text": "pero la foto sigue ahí… y mañana todo el curso la va a ver 😔"
+                  }
+                ],
+                "prompt": "¿Cómo pueden detener esto de verdad?",
+                "choices": [
+                  {
+                    "id": "a",
+                    "text": "No le des importancia, ya se les va a pasar",
+                    "isGood": false,
+                    "feedback": "Quitarle importancia a lo que siente no lo ayuda, y el acoso suele empeorar si nadie hace nada.",
+                    "reactions": [
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "pero a mí sí me importa… 😞"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "text": "Mejor sal de internet para siempre",
+                    "isGood": false,
+                    "feedback": "La solución no es que quien sufre el acoso desaparezca: es que el acoso pare. Mateo no hizo nada malo.",
+                    "reactions": [
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "¿por qué tengo que irme yo si no hice nada? 😢"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "c",
+                    "text": "Guardemos capturas y contémosle juntos a la profe y a tus papás",
+                    "isGood": true,
+                    "feedback": "Pedir ayuda a un adulto de confianza no es ser 'soplón': es la forma más efectiva de frenar el ciberacoso. Las capturas sirven como prueba.",
+                    "reactions": [
+                      {
+                        "from": "Mateo",
+                        "emoji": "🥺",
+                        "text": "¿me acompañas? 🙂 así me da menos miedo"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "messages": [
+                  {
+                    "text": "☀️ Al día siguiente…"
+                  },
+                  {
+                    "from": "Profe Ana",
+                    "emoji": "👩‍🏫",
+                    "text": "Chicos, me enteré de lo que pasó en el grupo. Tomi, borra esa foto ahora. Hoy vamos a hablar todos sobre el respeto en internet."
+                  },
+                  {
+                    "from": "Tomi",
+                    "emoji": "😜",
+                    "text": "ya la borré… perdón Mateo, me pasé 😔"
+                  },
+                  {
+                    "from": "Mateo",
+                    "emoji": "🥺",
+                    "text": "gracias por ayudarme. ¡Eres un gran amigo! 💙"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "module_social_networks",
+      "title": "Huella Digital Responsable",
+      "subtitle": "Lo que publicas hoy construye tu futuro",
+      "description": "Todo lo que subes, comentas o compartes deja un rastro en internet. Descubre cómo construir una huella digital brillante y positiva de la que estés orgulloso.",
+      "icon": "public",
+      "accentColor": "#00C2FF",
+      "badgeId": "badge_digital_footprint",
+      "badgeTitle": "Explorador Consciente",
+      "badgeDescription": "¡Tu huella digital es un ejemplo de responsabilidad e inteligencia digital!",
+      "challenges": [
+        {
+          "id": "net_2",
+          "title": "Detective de publicaciones",
+          "type": "SPOT_THE_CLUES",
+          "storyContext": "Sofi, una niña de tu edad, está a punto de publicar esto en su red social. Ella no se da cuenta, pero su publicación revela demasiadas cosas y además podría lastimar a alguien.",
+          "question": "🔍 Toca todas las partes de la publicación que NO deberían compartirse.",
+          "points": 250,
+          "educationalTip": "Antes de publicar, hazte la prueba de los '10 años después': ¿me sentiría orgulloso si mis papás, mis profes o mi yo del futuro vieran esto? Y recuerda: aunque lo borres, alguien pudo guardar una captura. Nunca publiques dónde vives, dónde estudias, cuándo estás solo ni cómo contactarte.",
+          "scene": {
+            "app": "FotoRed · Nueva publicación",
+            "emoji": "📸",
+            "title": "@sofi_2015 · [[n1|🌍 Visible para todo el mundo]]",
+            "lines": [
+              "¡Primer día de clases en [[n2|4° B del Colegio San Martín]]! 🎒✨",
+              "[[n3|Hoy estoy sola en casa de 3 a 6]] porque mis papás trabajan 😎",
+              "[[n4|📍 Calle Los Pinos 245]]",
+              "[[n6|Y miren el video de mi primo cayéndose en la fiesta 😂]] [[n7|Si se enoja, lo borro y desaparece para siempre]]",
+              "¡Síganme y comenten! [[n5|Mi número es 555-0192]] para que me escriban 💬"
+            ],
+            "button": "PUBLICAR"
+          },
+          "clues": [
+            {
+              "id": "n1",
+              "label": "Publicación pública",
+              "explanation": "Cualquier persona del mundo, incluso desconocidos, puede verla. Lo mejor es que solo la vean amigos que conoces en persona.",
+              "hint": "Mira quién puede ver la publicación, arriba de todo."
+            },
+            {
+              "id": "n2",
+              "label": "Su colegio y su curso",
+              "explanation": "Con el nombre del colegio y el curso, un desconocido sabría dónde encontrarla cada día.",
+              "hint": "¿Dice dónde estudia?"
+            },
+            {
+              "id": "n3",
+              "label": "Cuándo está sola",
+              "explanation": "Nunca hay que contar en internet cuándo estás solo en casa. Es información que solo debe saber tu familia.",
+              "hint": "¿Dice a qué hora no hay adultos en su casa?"
+            },
+            {
+              "id": "n4",
+              "label": "Su dirección",
+              "explanation": "La ubicación o la dirección de tu casa jamás debe aparecer en una publicación.",
+              "hint": "Busca un lugar en el mapa…"
+            },
+            {
+              "id": "n5",
+              "label": "Su número de teléfono",
+              "explanation": "Con tu número, cualquier desconocido podría escribirte o llamarte. Compártelo solo con personas de confianza, en privado.",
+              "hint": "¿Cómo podrían contactarla?"
+            },
+            {
+              "id": "n6",
+              "label": "Burlarse de otra persona",
+              "explanation": "Publicar algo vergonzoso de alguien sin su permiso lo puede lastimar mucho. Pregúntate: ¿me gustaría que lo hicieran conmigo?",
+              "hint": "¿Hay algo que podría hacer sentir mal a otra persona?"
+            },
+            {
+              "id": "n7",
+              "label": "Creer que borrar lo arregla",
+              "explanation": "En internet cualquiera puede guardar una captura o descargar el video antes de que lo borres. Lo que se publica puede quedarse para siempre.",
+              "hint": "¿Qué piensa hacer si alguien se enoja?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "module_wifi",
+      "title": "Hogar Conectado y Seguro",
+      "subtitle": "Wi-Fi, celulares y tablets sin sorpresas",
+      "description": "Dentro de casa también hay puertas digitales: la red Wi-Fi, el celular y la tablet. Aprende a mantenerlas cerradas para los intrusos y a actualizar tus aparatos.",
+      "icon": "wifi",
+      "accentColor": "#FF8A4C",
+      "badgeId": "badge_safe_home",
+      "badgeTitle": "Guardián del Hogar Digital",
+      "badgeDescription": "¡Sabes cómo proteger el Wi-Fi y los dispositivos de tu casa!",
+      "challenges": [
+        {
+          "id": "wifi_4",
+          "title": "El chat de la familia",
+          "type": "CHAT_STORY",
+          "storyContext": "Tu familia tiene un grupo de chat para organizarse. Hoy, entre paseos y tareas, aparecen varias decisiones sobre el Wi-Fi y los aparatos de la casa.",
+          "question": "💬 Lee la conversación y decide qué responder. ¡Tus decisiones protegen la casa digital!",
+          "points": 300,
+          "educationalTip": "En redes Wi-Fi abiertas no entres a tus cuentas y pregunta antes a un adulto. Cambien la clave de fábrica del router por una frase larga y propia. E instala las actualizaciones oficiales desde los ajustes del aparato, nunca desde links de desconocidos.",
+          "chat": {
+            "groupName": "Familia 🏠",
+            "emoji": "👨‍👩‍👦",
+            "meterLabel": "Seguridad de la casa",
+            "meterIcons": [
+              "🔓",
+              "⚠️",
+              "🔒",
+              "🛡️",
+              "🏰"
+            ],
+            "meterStart": 1,
+            "steps": [
+              {
+                "messages": [
+                  {
+                    "text": "🛍️ De paseo en el centro comercial"
+                  },
+                  {
+                    "from": "Papá",
+                    "emoji": "👨",
+                    "text": "Aquí casi no hay señal 😩"
+                  },
+                  {
+                    "from": "Lucas",
+                    "emoji": "🧑",
+                    "text": "¡Hay una red que se llama WiFi_Gratis_Total y no pide clave! Conéctate y entra a tu cuenta del juego 🎮"
+                  }
+                ],
+                "prompt": "¿Qué respondes?",
+                "choices": [
+                  {
+                    "id": "a",
+                    "text": "¡Listo! Me conecto y entro a mi cuenta",
+                    "isGood": false,
+                    "feedback": "En una red abierta alguien podría estar espiando lo que escribes, incluidas tus claves.",
+                    "reactions": [
+                      {
+                        "from": "Lucas",
+                        "emoji": "🧑",
+                        "text": "👍"
+                      },
+                      {
+                        "from": "Papá",
+                        "emoji": "👨",
+                        "text": "¡Espera! Esa red podría ser una trampa 😟"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "text": "Le paso el nombre de la red a todos mis amigos",
+                    "isGood": false,
+                    "feedback": "Compartir una red desconocida solo multiplica el riesgo para todos.",
+                    "reactions": [
+                      {
+                        "from": "Mamá",
+                        "emoji": "👩",
+                        "text": "Uy, mejor no hasta saber si es segura 😬"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "c",
+                    "text": "Mejor no: en redes abiertas pueden espiar lo que escribo. Papá, ¿es confiable?",
+                    "isGood": true,
+                    "feedback": "¡Muy buen reflejo! Preguntar primero y no entrar a tus cuentas en redes abiertas te mantiene a salvo.",
+                    "reactions": [
+                      {
+                        "from": "Papá",
+                        "emoji": "👨",
+                        "text": "¡Bien pensado! Usa un ratito los datos del celular de mamá y no entres a tus cuentas aquí 👏"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "messages": [
+                  {
+                    "text": "🏠 De vuelta en casa"
+                  },
+                  {
+                    "from": "Mamá",
+                    "emoji": "👩",
+                    "text": "El técnico dijo que la clave del Wi-Fi sigue siendo la que viene en la etiqueta del router 🤔"
+                  },
+                  {
+                    "from": "Lucas",
+                    "emoji": "🧑",
+                    "text": "¿Y qué? Así no se nos olvida jaja"
+                  }
+                ],
+                "prompt": "¿Qué propones?",
+                "choices": [
+                  {
+                    "id": "a",
+                    "text": "Dejémosla igual, total nadie la ve",
+                    "isGood": false,
+                    "feedback": "Las claves de fábrica son muy conocidas y fáciles de adivinar. Es mejor cambiarlas.",
+                    "reactions": [
+                      {
+                        "from": "Papá",
+                        "emoji": "👨",
+                        "text": "Hmm, los vecinos podrían adivinarla 🤔"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "text": "Pongámosla en la ventana para que las visitas se conecten fácil",
+                    "isGood": false,
+                    "feedback": "Mostrar la clave a todos invita a que extraños usen y vigilen tu conexión.",
+                    "reactions": [
+                      {
+                        "from": "Mamá",
+                        "emoji": "👩",
+                        "text": "¡Así cualquiera de la calle la vería! 😱"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "c",
+                    "text": "¡Hay que cambiarla! Inventemos juntos una frase larga que solo sepa la familia",
+                    "isGood": true,
+                    "feedback": "¡Perfecto! Una frase larga y propia protege la puerta principal de la red de tu casa.",
+                    "reactions": [
+                      {
+                        "from": "Mamá",
+                        "emoji": "👩",
+                        "text": "¡Me encanta la idea! Esta noche la cambiamos juntos 💪"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "messages": [
+                  {
+                    "from": "Lucas",
+                    "emoji": "🧑",
+                    "text": "Me salió un aviso de 'Actualización de seguridad disponible' en la tablet, pero quiero jugar 🎮"
+                  },
+                  {
+                    "from": "Lucas",
+                    "emoji": "🧑",
+                    "text": "Y un chico del juego me mandó un link con una 'actualización' más rápida 😏"
+                  }
+                ],
+                "prompt": "¿Qué le aconsejas a Lucas?",
+                "choices": [
+                  {
+                    "id": "a",
+                    "text": "Ignora el aviso para siempre, las actualizaciones solo estorban",
+                    "isGood": false,
+                    "feedback": "Sin actualizar, los huecos de seguridad quedan abiertos y los virus pueden colarse.",
+                    "reactions": [
+                      {
+                        "from": "Papá",
+                        "emoji": "👨",
+                        "text": "Sin actualizar quedan huecos por donde entran virus 😟"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "b",
+                    "text": "Usa el link del chico, seguro es más rápido",
+                    "isGood": false,
+                    "feedback": "Las actualizaciones verdaderas llegan por el sistema oficial, nunca por mensajes de desconocidos.",
+                    "reactions": [
+                      {
+                        "from": "Mamá",
+                        "emoji": "👩",
+                        "text": "¡Nooo! Eso podría ser un virus 😱"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "c",
+                    "text": "Instala la de la tablet cuando termines de jugar, desde los ajustes. ¡Y el link ni lo abras!",
+                    "isGood": true,
+                    "feedback": "¡Excelente! Actualizar a tiempo, desde el sistema oficial, cierra las puertas por las que se meten los problemas.",
+                    "reactions": [
+                      {
+                        "from": "Papá",
+                        "emoji": "👨",
+                        "text": "¡Exacto! Las actualizaciones oficiales llegan por los ajustes 👏"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "messages": [
+                  {
+                    "from": "Papá",
+                    "emoji": "👨",
+                    "text": "¡Gracias por cuidar la casa digital! Eres el guardián del Wi-Fi de la familia 🛡️"
+                  },
+                  {
+                    "from": "Mamá",
+                    "emoji": "👩",
+                    "text": "❤️❤️"
+                  },
+                  {
+                    "from": "Lucas",
+                    "emoji": "🧑",
+                    "text": "ok, ok… sí sabes 😅"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "module_malware",
+      "title": "Bosque Libre de Virus",
+      "subtitle": "Descarga seguro y mantén lejos a los virus",
+      "description": "Los virus se esconden en juegos gratis, premios falsos y archivos raros. Aprende a reconocerlos y a descargar solo lo que es seguro, para que tus aparatos sigan sanos.",
+      "icon": "bug_report",
+      "accentColor": "#3DDC84",
+      "badgeId": "badge_forest_guardian",
+      "badgeTitle": "Guardián del Bosque",
+      "badgeDescription": "¡Defendiste el Bosque Escondido y sabes distinguir una descarga segura de un virus!",
+      "challenges": [
+        {
+          "id": "mal_1",
+          "title": "Defiende el bosque",
+          "type": "TAP_DEFENSE",
+          "storyContext": "Una tormenta de descargas cae sobre el Bosque Escondido. Entre ellas hay virus disfrazados de juegos, premios y archivos… pero también cosas buenas que el bosque necesita.",
+          "question": "👆 Toca los virus para destruirlos y deja pasar lo seguro. ¡Aguanta 3 oleadas!",
+          "points": 300,
+          "educationalTip": "Descarga apps solo desde la tienda oficial, y siempre con permiso de un adulto. Desconfía de lo 'gratis', los premios, los hacks y los archivos de desconocidos. Y si un anuncio dice que tienes virus, ¡es falso!",
+          "arcade": {
+            "shields": 3,
+            "items": [
+              {
+                "id": "t1",
+                "emoji": "🎮",
+                "text": "Juego GRATIS de página rara",
+                "isThreat": true,
+                "feedback": "Los juegos 'gratis' de páginas desconocidas suelen traer virus escondidos. Descarga solo desde la tienda oficial."
+              },
+              {
+                "id": "t2",
+                "emoji": "🎁",
+                "text": "¡Premio! Abre premio.exe",
+                "isThreat": true,
+                "feedback": "Nadie regala premios en archivos para descargar: es un virus disfrazado."
+              },
+              {
+                "id": "t3",
+                "emoji": "📎",
+                "text": "Archivo de un desconocido",
+                "isThreat": true,
+                "feedback": "Nunca abras archivos que te manden desconocidos: pueden esconder virus."
+              },
+              {
+                "id": "t4",
+                "emoji": "⚡",
+                "text": "Acelera tu celular x1000",
+                "isThreat": true,
+                "feedback": "Las apps 'milagrosas' fuera de la tienda oficial suelen ser virus que espían tu celular."
+              },
+              {
+                "id": "t5",
+                "emoji": "💎",
+                "text": "Hack de gemas infinitas",
+                "isThreat": true,
+                "feedback": "Los hacks y trucos para juegos son una trampa favorita para meter virus y robar cuentas."
+              },
+              {
+                "id": "t6",
+                "emoji": "🦠",
+                "text": "Anuncio: ¡Tienes 5 virus!",
+                "isThreat": true,
+                "feedback": "Los anuncios que dicen que tienes virus son falsos: quieren que instales algo peligroso."
+              },
+              {
+                "id": "t7",
+                "emoji": "🎬",
+                "text": "Película completa.zip",
+                "isThreat": true,
+                "feedback": "Las películas en archivos .zip de páginas raras casi siempre traen virus."
+              },
+              {
+                "id": "t8",
+                "emoji": "🧩",
+                "text": "Skins gratis: instala esto",
+                "isThreat": true,
+                "feedback": "Ningún programa raro te dará skins gratis: es un anzuelo para meter virus."
+              },
+              {
+                "id": "s1",
+                "emoji": "🏪",
+                "text": "App de la tienda oficial",
+                "isThreat": false,
+                "feedback": "Las apps de la tienda oficial del aparato son revisadas. ¡Esa era segura!"
+              },
+              {
+                "id": "s2",
+                "emoji": "🔄",
+                "text": "Actualización del sistema",
+                "isThreat": false,
+                "feedback": "Las actualizaciones oficiales protegen tu aparato. ¡Hay que dejarlas pasar!"
+              },
+              {
+                "id": "s3",
+                "emoji": "📚",
+                "text": "Tarea de la profe",
+                "isThreat": false,
+                "feedback": "La tarea que sube tu profe a la plataforma del colegio es segura."
+              },
+              {
+                "id": "s4",
+                "emoji": "🛡️",
+                "text": "Antivirus que instaló papá",
+                "isThreat": false,
+                "feedback": "El antivirus que instala un adulto de confianza te protege. ¡Era de los buenos!"
+              },
+              {
+                "id": "s5",
+                "emoji": "📷",
+                "text": "Fotos del paseo de mamá",
+                "isThreat": false,
+                "feedback": "Las fotos que comparte tu familia por un canal conocido son seguras."
+              }
+            ],
+            "waves": [
+              {
+                "count": 8,
+                "fallMs": 7000,
+                "spawnMs": 1500,
+                "tip": "Descarga apps solo desde la tienda oficial del aparato, y pide permiso a un adulto antes de instalar algo."
+              },
+              {
+                "count": 10,
+                "fallMs": 6000,
+                "spawnMs": 1200,
+                "tip": "Los archivos que mandan desconocidos y los premios 'para descargar' son virus disfrazados. ¡No los abras!"
+              },
+              {
+                "count": 12,
+                "fallMs": 5000,
+                "spawnMs": 1000,
+                "tip": "Los hacks, trucos y cosas 'gratis' de páginas raras son la trampa favorita de los virus."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "module_gaming",
+      "title": "Jugadores Inteligentes",
+      "subtitle": "Videojuegos en línea con cabeza fría",
+      "description": "Jugar en línea es genial, pero también hay extraños, compras engañosas y trampas. Aprende a divertirte sin poner en riesgo tu cuenta ni tu información.",
+      "icon": "sports_esports",
+      "accentColor": "#4C9BFF",
+      "badgeId": "badge_smart_gamer",
+      "badgeTitle": "Jugador Inteligente",
+      "badgeDescription": "¡Sabes jugar en línea de forma divertida y segura!",
+      "challenges": [
+        {
+          "id": "game_4",
+          "title": "Detective del chat del juego",
+          "type": "SPOT_THE_CLUES",
+          "storyContext": "Estás jugando tu juego favorito y de repente te llega un mensaje privado de alguien que no conoces. Parece muy amable… pero algo no cuadra.",
+          "question": "🔍 Toca todas las señales de que este jugador quiere engañarte.",
+          "points": 450,
+          "educationalTip": "En los juegos en línea nunca compartas tu nombre real, tu edad, tu dirección, tu teléfono ni tu contraseña. Desconfía de regalos, secretos y de quien quiere hablar en otra app. Las compras se deciden siempre con tus papás. Si algo te incomoda: bloquea y cuéntaselo a un adulto.",
+          "scene": {
+            "app": "Chat del juego · BloqueCraft",
+            "emoji": "🎮",
+            "title": "Mensaje de xX_ProGamer_Xx [[g1|(no está en tu lista de amigos)]]",
+            "lines": [
+              "¡Hola! Me gusta cómo juegas. [[g2|¿Cómo te llamas de verdad, cuántos años tienes y dónde vives?]]",
+              "Te regalo [[g3|50.000 monedas gratis]] 🪙 Solo necesito [[g4|tu usuario y tu contraseña]] para cargarlas.",
+              "Y si quieres la skin dorada, [[g5|úsala con la tarjeta de tus papás, no se van a dar cuenta]] 💳",
+              "[[g6|No se lo cuentes a tus papás]], será nuestro secreto 🤫"
+            ],
+            "button": "[[g7|Sigamos hablando en otra app 📲]]"
+          },
+          "clues": [
+            {
+              "id": "g1",
+              "label": "Es un desconocido",
+              "explanation": "No lo conoces en la vida real. En internet cualquiera puede fingir ser otra persona.",
+              "hint": "¿Quién te escribe? Fíjate en el nombre."
+            },
+            {
+              "id": "g2",
+              "label": "Pide tus datos personales",
+              "explanation": "Tu nombre real, tu edad y dónde vives no se comparten con desconocidos. Ni siquiera solo uno de ellos.",
+              "hint": "¿Te hace preguntas sobre ti?"
+            },
+            {
+              "id": "g3",
+              "label": "Regalo demasiado bueno",
+              "explanation": "Nadie regala tantas monedas a un desconocido. Los regalos increíbles son el anzuelo favorito de los estafadores.",
+              "hint": "¿Qué te está ofreciendo?"
+            },
+            {
+              "id": "g4",
+              "label": "Pide tu contraseña",
+              "explanation": "Los juegos nunca dan premios a cambio de tu contraseña. Quien te la pide quiere robar tu cuenta.",
+              "hint": "¿Qué te pide a cambio del regalo?"
+            },
+            {
+              "id": "g5",
+              "label": "Compras sin permiso",
+              "explanation": "Las compras con dinero real se deciden siempre con tus papás. Nunca uses su tarjeta sin permiso, aunque alguien te diga que no se darán cuenta.",
+              "hint": "¿Habla de dinero o de tarjetas?"
+            },
+            {
+              "id": "g6",
+              "label": "Te pide guardar un secreto",
+              "explanation": "Un amigo de verdad nunca te pedirá esconderles algo a tus papás. Es una de las señales de peligro más importantes.",
+              "hint": "¿Menciona a tu familia?"
+            },
+            {
+              "id": "g7",
+              "label": "Quiere hablar en otra app",
+              "explanation": "Llevarte a otra app es una forma de alejarte de las protecciones del juego y de los adultos. ¡No lo sigas!",
+              "hint": "Mira el botón de abajo."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
