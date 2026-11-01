@@ -27,7 +27,7 @@ val NeonBlue = Color(0xFF00B4D8)            // Acento secundario
 val NeonPurple = Color(0xFFA855F7)          // Aura mágica
 val NeonPink = Color(0xFFFF6B9D)            // Coral / Afecto
 val NeonGold = Color(0xFFFFD700)            // Oro / Recompensas
-val NeonAmber = Color(0xFFFFB703)           // Monedas / XP ganada
+val NeonAmber = Color(0xFFFFB703)           // XP ganada
 val NeonGreen = Color(0xFF34D399)           // Éxito / Salud
 
 // ─── Colores de módulos (matching JSON content) ────────────────

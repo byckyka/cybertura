@@ -334,7 +334,7 @@ fun CyberTopBar(
                             }
                         }
 
-                        // Gold / Points
+                        // XP total (es la misma cifra que define el nivel; no hay otra moneda)
                         Surface(
                             shape = RoundedCornerShape(10.dp),
                             color = DungeonCardHover,
@@ -347,26 +347,22 @@ fun CyberTopBar(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                // Gold coin icon
-                                Box(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .background(
-                                            Brush.radialGradient(listOf(NeonGold, NeonAmber)),
-                                            CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "✦",
-                                        fontSize = 8.sp,
-                                        color = DungeonBlack
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = NeonGold,
+                                    modifier = Modifier.size(16.dp)
+                                )
                                 Text(
                                     text = "$points",
                                     color = NeonGold,
                                     fontSize = 13.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                                Text(
+                                    text = "XP",
+                                    color = NeonAmber,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.Black
                                 )
                             }

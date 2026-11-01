@@ -179,7 +179,7 @@ fun GameWorldScreen(
             }
         }
 
-        // 2. HUD Superior (Monedas, nivel, etc) + objetivo actual
+        // 2. HUD Superior (XP, nivel, etc) + objetivo actual
         Column(modifier = Modifier.fillMaxWidth()) {
             CyberTopBar(
                 agentName = userProgress.agentName,

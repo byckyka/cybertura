@@ -40,6 +40,7 @@ import com.example.cybertura.ui.viewmodel.BadgesUiState
 fun BadgesScreen(
     uiState: BadgesUiState,
     onBackClick: () -> Unit,
+    onCreditsClick: () -> Unit,
     onResetProgress: () -> Unit
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
@@ -61,14 +62,16 @@ fun BadgesScreen(
                         .statusBarsPadding()
                         .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
-                    Row(
+                    // Box en vez de Row para que el título quede centrado aunque
+                    // a la derecha haya dos botones y a la izquierda solo uno
+                    Box(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        contentAlignment = Alignment.Center
                     ) {
                         IconButton(
                             onClick = onBackClick,
                             modifier = Modifier
+                                .align(Alignment.CenterStart)
                                 .size(34.dp)
                                 .background(DungeonCardHover, CircleShape)
                                 .border(1.dp, DungeonBorder, CircleShape)
@@ -97,19 +100,40 @@ fun BadgesScreen(
                             )
                         }
 
-                        IconButton(
-                            onClick = { showResetDialog = true },
-                            modifier = Modifier
-                                .size(34.dp)
-                                .background(DungeonCardHover, CircleShape)
-                                .border(1.dp, DungeonBorder, CircleShape)
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            // IconButton se dibuja a 48dp (tamaño táctil mínimo) aunque mida 34dp
+                            horizontalArrangement = Arrangement.spacedBy(24.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.RestartAlt,
-                                contentDescription = "Reiniciar aventura",
-                                tint = NeonAmber,
-                                modifier = Modifier.size(18.dp)
-                            )
+                            IconButton(
+                                onClick = onCreditsClick,
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .background(DungeonCardHover, CircleShape)
+                                    .border(1.dp, DungeonBorder, CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = "Créditos",
+                                    tint = NeonCyan,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { showResetDialog = true },
+                                modifier = Modifier
+                                    .size(34.dp)
+                                    .background(DungeonCardHover, CircleShape)
+                                    .border(1.dp, DungeonBorder, CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.RestartAlt,
+                                    contentDescription = "Reiniciar aventura",
+                                    tint = NeonAmber,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }

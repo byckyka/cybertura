@@ -183,7 +183,7 @@ fun GameCompletedScreen(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         AchievementStat(icon = "🏅", value = "${com.example.cybertura.game.engine.NpcRegistry.questNpcs.size}/${com.example.cybertura.game.engine.NpcRegistry.questNpcs.size}", label = "Medallas")
-                        AchievementStat(icon = "⭐", value = "${userProgress.totalScore}", label = "Puntos")
+                        AchievementStat(icon = "⭐", value = "${userProgress.totalScore}", label = "XP Total")
                     }
                 }
             }
