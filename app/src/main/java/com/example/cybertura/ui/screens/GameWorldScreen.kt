@@ -27,6 +27,7 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.model.UserProgress
 import com.example.cybertura.game.engine.GameState
@@ -99,6 +100,12 @@ fun GameWorldScreen(
             "npc_mama_cora"  to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.townsfolk_m_idle_1),
             "npc_hermana_luna" to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.mage_idle_1)
         )
+    }
+
+    // --- Bucle de juego: corre solo mientras esta pantalla está visible ---
+    LifecycleStartEffect(viewModel) {
+        viewModel.resumeGameLoop()
+        onStopOrDispose { viewModel.pauseGameLoop() }
     }
 
     // --- Sonido ---
