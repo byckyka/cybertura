@@ -14,6 +14,9 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,8 +39,11 @@ import com.example.cybertura.ui.viewmodel.BadgesUiState
 @Composable
 fun BadgesScreen(
     uiState: BadgesUiState,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onResetProgress: () -> Unit
 ) {
+    var showResetDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             Surface(
@@ -91,7 +97,20 @@ fun BadgesScreen(
                             )
                         }
 
-                        Box(modifier = Modifier.size(34.dp))
+                        IconButton(
+                            onClick = { showResetDialog = true },
+                            modifier = Modifier
+                                .size(34.dp)
+                                .background(DungeonCardHover, CircleShape)
+                                .border(1.dp, DungeonBorder, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RestartAlt,
+                                contentDescription = "Reiniciar aventura",
+                                tint = NeonAmber,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -215,6 +234,49 @@ fun BadgesScreen(
                 }
             }
         }
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Warning, null, tint = NeonAmber)
+                    Text(
+                        text = "¿Reiniciar aventura?",
+                        fontWeight = FontWeight.Black,
+                        color = TextPrimary
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Se borrarán tu nivel, tu XP y todas tus medallas, y la aventura empezará de nuevo desde el tutorial. Esto no se puede deshacer.",
+                    color = TextSecondary
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showResetDialog = false
+                        onResetProgress()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = NeonPink)
+                ) {
+                    Text("Reiniciar", fontWeight = FontWeight.Bold, color = DungeonBlack)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetDialog = false }) {
+                    Text("Cancelar", color = TextSecondary)
+                }
+            },
+            containerColor = DungeonCard,
+            shape = RoundedCornerShape(24.dp)
+        )
     }
 }
 

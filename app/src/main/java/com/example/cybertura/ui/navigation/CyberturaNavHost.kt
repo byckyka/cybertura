@@ -6,8 +6,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.cybertura.audio.SoundManager
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -28,8 +30,11 @@ fun CyberturaNavHost(
     repository: CyberRepository,
     navController: NavHostController = rememberNavController()
 ) {
-    // Detectar si es la primera vez (tutorial no visto)
-    val tutorialSeen by repository.tutorialSeen.collectAsState(initial = null)
+    // Detectar si es la primera vez (tutorial no visto). Se lee una sola vez al abrir la app:
+    // si cambiara después (al reiniciar el progreso) el NavHost se reconstruiría por su cuenta.
+    val tutorialSeen by produceState<Boolean?>(initialValue = null) {
+        value = repository.tutorialSeen.first()
+    }
 
     // Mientras carga la preferencia, no renderizar nada para evitar parpadeo
     val startDestination = when (tutorialSeen) {
@@ -199,7 +204,16 @@ fun CyberturaNavHost(
 
             BadgesScreen(
                 uiState = uiState,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onResetProgress = {
+                    badgesViewModel.resetProgress {
+                        // Vaciar toda la pila: el mundo (y su ViewModel) se crea de nuevo
+                        // y la aventura arranca otra vez desde el tutorial.
+                        navController.navigate(Screen.Tutorial.route) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
+                    }
+                }
             )
         }
 

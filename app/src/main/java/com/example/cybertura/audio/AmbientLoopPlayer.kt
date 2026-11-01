@@ -42,6 +42,7 @@ class AmbientLoopPlayer(
     fun play() = synchronized(lock) {
         wantsPlaying = true
         track?.play()
+        lock.notifyAll() // despierta el hilo de escritura
     }
 
     fun pause() = synchronized(lock) {
@@ -58,6 +59,7 @@ class AmbientLoopPlayer(
         released = true
         track?.run { pause(); flush(); release() }
         track = null
+        lock.notifyAll()
     }
 
     private fun run() {
@@ -86,10 +88,15 @@ class AmbientLoopPlayer(
             track = audioTrack
         }
 
-        // Escribe el bucle una y otra vez; mientras el track está en pausa, write() bloquea.
+        // Escribe el bucle una y otra vez. En pausa, write() no bloquea: devuelve 0 en cuanto
+        // el búfer se llena, así que el hilo duerme hasta que play() o release() lo despierten.
         val chunk = 4096
         var pos = 0
         while (!released) {
+            synchronized(lock) {
+                while (!wantsPlaying && !released) lock.wait()
+            }
+            if (released) break
             val count = minOf(chunk, loop.size - pos)
             val written = audioTrack.write(loop, pos, count)
             if (written < 0) break

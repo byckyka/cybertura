@@ -10,7 +10,9 @@ import com.example.cybertura.game.engine.GameState
 import com.example.cybertura.game.engine.GameWorld
 import com.example.cybertura.game.engine.MapIds
 import com.example.cybertura.game.engine.NpcRegistry
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,13 +54,14 @@ class GameWorldViewModel(
     )
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
-    private var isGameLoopRunning = false
+    /** Bucle de juego activo; null mientras está en pausa. */
+    private var gameLoopJob: Job? = null
 
     /** Módulos completados por el jugador (para saber qué maestros ya superó). */
     private var completedModuleIds: Set<String> = emptySet()
 
     init {
-        startGameLoop()
+        // El bucle no arranca aquí: la pantalla lo reanuda y lo pausa según su ciclo de vida.
         observeProgressForQuestMarker()
     }
 
@@ -73,14 +76,18 @@ class GameWorldViewModel(
         }
     }
 
-    private fun startGameLoop() {
-        if (isGameLoopRunning) return
-        isGameLoopRunning = true
+    /**
+     * Arranca el bucle de juego. Se llama cuando la pantalla del mundo es visible
+     * (ON_START); no hace nada si ya está corriendo.
+     */
+    fun resumeGameLoop() {
+        if (gameLoopJob?.isActive == true) return
 
-        viewModelScope.launch {
+        gameLoopJob = viewModelScope.launch {
+            // Reiniciar el reloj para que el primer frame no cuente el tiempo en pausa
             _gameState.update { it.copy(lastFrameTimeMs = System.currentTimeMillis()) }
 
-            while (isGameLoopRunning) {
+            while (isActive) {
                 val frameStart = System.currentTimeMillis()
                 val currentState = _gameState.value
                 // dt limitado a 100ms para evitar saltos grandes en frames lentos
@@ -94,6 +101,17 @@ class GameWorldViewModel(
                 delay(remaining)
             }
         }
+    }
+
+    /**
+     * Detiene el bucle de juego cuando la pantalla deja de verse (ON_STOP): al abrir
+     * un reto, las medallas o al mandar la app a segundo plano. Así no gasta batería.
+     */
+    fun pauseGameLoop() {
+        gameLoopJob?.cancel()
+        gameLoopJob = null
+        // Soltar el joystick para que el jugador no siga caminando al volver
+        _gameState.update { it.copy(joystickX = 0f, joystickY = 0f, isWalking = false) }
     }
 
     private fun updateGame(dt: Float, currentTime: Long) {
@@ -426,11 +444,6 @@ class GameWorldViewModel(
         _gameState.update {
             it.copy(showDialog = false, dialogNpcId = null)
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        isGameLoopRunning = false
     }
 
     companion object {

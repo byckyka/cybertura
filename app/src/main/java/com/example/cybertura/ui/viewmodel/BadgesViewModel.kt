@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class BadgeItem(
     val id: String,
@@ -26,7 +27,7 @@ data class BadgesUiState(
     val unlockedCount: Int = 0
 )
 
-class BadgesViewModel(repository: CyberRepository) : ViewModel() {
+class BadgesViewModel(private val repository: CyberRepository) : ViewModel() {
 
     private val modules = repository.getModules()
 
@@ -52,6 +53,14 @@ class BadgesViewModel(repository: CyberRepository) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = BadgesUiState()
         )
+
+    /** Borra todo el progreso guardado y avisa cuando termina, para poder navegar después. */
+    fun resetProgress(onDone: () -> Unit) {
+        viewModelScope.launch {
+            repository.resetProgress()
+            onDone()
+        }
+    }
 
     companion object {
         fun provideFactory(repository: CyberRepository): ViewModelProvider.Factory =
