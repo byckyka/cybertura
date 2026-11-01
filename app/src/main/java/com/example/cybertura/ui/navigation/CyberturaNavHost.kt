@@ -23,7 +23,6 @@ import com.example.cybertura.game.engine.NpcRegistry
 import com.example.cybertura.ui.screens.*
 import com.example.cybertura.ui.viewmodel.BadgesViewModel
 import com.example.cybertura.ui.viewmodel.GameplayViewModel
-import com.example.cybertura.ui.viewmodel.HomeViewModel
 
 @Composable
 fun CyberturaNavHost(
@@ -174,12 +173,16 @@ fun CyberturaNavHost(
             val moduleId = backStackEntry.arguments?.getString("moduleId") ?: return@composable
             val module = repository.getModuleById(moduleId)
             val userProgress by repository.userProgress.collectAsState(initial = UserProgress())
+            // Mientras carga se asume "ya vista" para no repetir la pantalla final por error
+            val gameCompletedSeen by repository.gameCompletedSeen.collectAsState(initial = true)
 
             ModuleResultScreen(
                 module = module,
                 onGoHome = {
-                    // Si acaban de completar el último módulo de la historia
-                    if (userProgress.completedModuleIds.size >= NpcRegistry.questNpcs.size) {
+                    // Solo la primera vez que se completa el último módulo de la historia;
+                    // al rejugar un módulo después se vuelve directo al mundo.
+                    val allModulesDone = userProgress.completedModuleIds.size >= NpcRegistry.questNpcs.size
+                    if (allModulesDone && !gameCompletedSeen) {
                         navController.navigate(Screen.GameCompleted.route) {
                             popUpTo(Screen.Home.route) { inclusive = false }
                         }
@@ -220,6 +223,7 @@ fun CyberturaNavHost(
         // ── Pantalla de Finalización del Juego ──────────────────────────────────
         composable(Screen.GameCompleted.route) {
             val userProgress by repository.userProgress.collectAsState(initial = UserProgress())
+            LaunchedEffect(Unit) { repository.markGameCompletedSeen() }
             GameCompletedScreen(
                 userProgress = userProgress,
                 onFinish = {

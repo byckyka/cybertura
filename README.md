@@ -150,7 +150,7 @@ cybertura/
         │   │       ├── navigation/  Screen, CyberturaNavHost
         │   │       ├── screens/     mundo, tutorial, minijuegos, resultados, medallas
         │   │       ├── theme/       Color, Type, Theme
-        │   │       └── viewmodel/   GameWorld, Gameplay, Badges, Home
+        │   │       └── viewmodel/   GameWorld, Gameplay, Badges
         │   └── res/
         │       ├── drawable/     sprites de personajes y tiles (PNG)
         │       └── raw/          música y efectos de sonido (MP3)
