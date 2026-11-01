@@ -22,6 +22,11 @@ class CyberRepository(
 
     suspend fun markTutorialSeen() = dataStoreManager.markTutorialSeen()
 
+    /** true cuando el jugador ya vio la pantalla final; así no se repite al rejugar un módulo. */
+    val gameCompletedSeen: Flow<Boolean> = dataStoreManager.gameCompletedSeenFlow
+
+    suspend fun markGameCompletedSeen() = dataStoreManager.markGameCompletedSeen()
+
     fun getModules(): List<CyberModule> = cachedModules
 
     fun getModuleById(moduleId: String): CyberModule? {

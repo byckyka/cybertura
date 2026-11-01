@@ -27,6 +27,19 @@ class DataStoreManager(private val context: Context) {
         private val KEY_TOTAL_SCORE = intPreferencesKey("total_score")
         private val KEY_AGENT_NAME = stringPreferencesKey("agent_name")
         private val KEY_TUTORIAL_SEEN = booleanPreferencesKey("tutorial_seen")
+        private val KEY_GAME_COMPLETED_SEEN = booleanPreferencesKey("game_completed_seen")
+    }
+
+    val gameCompletedSeenFlow: Flow<Boolean> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { preferences -> preferences[KEY_GAME_COMPLETED_SEEN] ?: false }
+
+    suspend fun markGameCompletedSeen() {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_GAME_COMPLETED_SEEN] = true
+        }
     }
 
     val tutorialSeenFlow: Flow<Boolean> = context.dataStore.data
