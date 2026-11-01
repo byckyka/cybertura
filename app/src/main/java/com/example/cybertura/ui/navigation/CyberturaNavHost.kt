@@ -7,6 +7,7 @@ import com.example.cybertura.audio.SoundManager
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.first
@@ -208,6 +209,7 @@ fun CyberturaNavHost(
             BadgesScreen(
                 uiState = uiState,
                 onBackClick = { navController.popBackStack() },
+                onCreditsClick = { navController.navigate(Screen.Credits.route) },
                 onResetProgress = {
                     badgesViewModel.resetProgress {
                         // Vaciar toda la pila: el mundo (y su ViewModel) se crea de nuevo
@@ -234,12 +236,23 @@ fun CyberturaNavHost(
             )
         }
 
-        // ── Créditos (al terminar la aventura) ──────────────────────────────────
+        // ── Créditos (al terminar la aventura o desde la Sala de Trofeos) ───────
         composable(Screen.Credits.route) {
             val userProgress by repository.userProgress.collectAsState(initial = UserProgress())
+            // Desde los trofeos se regresa a ellos; desde el final del juego, al mundo
+            val fromBadges = remember {
+                navController.previousBackStackEntry?.destination?.route == Screen.Badges.route
+            }
             CreditsScreen(
                 agentName = userProgress.agentName,
-                onFinish = { navController.popBackStack(Screen.Home.route, inclusive = false) }
+                finishLabel = if (fromBadges) "Volver" else "Volver al Mundo",
+                onFinish = {
+                    if (fromBadges) {
+                        navController.popBackStack()
+                    } else {
+                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                    }
+                }
             )
         }
     }

@@ -91,6 +91,7 @@ private val SCROLL_SPEED_PER_SECOND = 45.dp
 @Composable
 fun CreditsScreen(
     agentName: String,
+    finishLabel: String,
     onFinish: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -184,7 +185,7 @@ fun CreditsScreen(
                 modifier = Modifier.fillMaxWidth(0.85f)
             ) {
                 Text(
-                    "Volver al Mundo",
+                    finishLabel,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
                     color = DungeonBlack
