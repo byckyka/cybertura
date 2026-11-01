@@ -5,6 +5,7 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Badges : Screen("badges")
     object GameCompleted : Screen("game_completed")
+    object Credits : Screen("credits")
 
     object ModuleDetail : Screen("module/{moduleId}") {
         fun createRoute(moduleId: String) = "module/$moduleId"

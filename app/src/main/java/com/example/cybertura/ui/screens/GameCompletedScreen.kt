@@ -33,6 +33,7 @@ import kotlin.random.Random
 @Composable
 fun GameCompletedScreen(
     userProgress: UserProgress,
+    onShowCredits: () -> Unit,
     onFinish: () -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "endingAnim")
@@ -190,17 +191,28 @@ fun GameCompletedScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             Button(
-                onClick = onFinish,
+                onClick = onShowCredits,
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = NeonGold),
                 contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp),
                 modifier = Modifier.fillMaxWidth(0.8f)
             ) {
                 Text(
-                    "Volver al Mundo",
+                    "Ver Créditos",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
                     color = DungeonBlack
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(onClick = onFinish) {
+                Text(
+                    "Volver al Mundo",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary
                 )
             }
         }

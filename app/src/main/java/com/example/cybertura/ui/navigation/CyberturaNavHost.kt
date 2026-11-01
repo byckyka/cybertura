@@ -226,10 +226,20 @@ fun CyberturaNavHost(
             LaunchedEffect(Unit) { repository.markGameCompletedSeen() }
             GameCompletedScreen(
                 userProgress = userProgress,
+                onShowCredits = { navController.navigate(Screen.Credits.route) },
                 onFinish = {
                     // Vuelve a Home y borra el historial hasta allí
                     navController.popBackStack(Screen.Home.route, inclusive = false)
                 }
+            )
+        }
+
+        // ── Créditos (al terminar la aventura) ──────────────────────────────────
+        composable(Screen.Credits.route) {
+            val userProgress by repository.userProgress.collectAsState(initial = UserProgress())
+            CreditsScreen(
+                agentName = userProgress.agentName,
+                onFinish = { navController.popBackStack(Screen.Home.route, inclusive = false) }
             )
         }
     }
