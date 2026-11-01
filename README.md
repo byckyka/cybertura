@@ -19,7 +19,7 @@ Juego móvil educativo para Android que enseña conceptos básicos de **ciudadan
 - [Editar el contenido educativo](#editar-el-contenido-educativo)
 - [Privacidad](#privacidad)
 - [Documentación adicional](#documentación-adicional)
-- [Autoría](#autoría)
+- [Autoría y créditos](#autoría-y-créditos)
 
 ---
 
@@ -223,8 +223,18 @@ CyberTura está pensada para menores de edad:
 - [`app/docs/DOCUMENTACION_TECNICA.md`](app/docs/DOCUMENTACION_TECNICA.md): auditoría técnica completa (arquitectura, persistencia, seguridad, pruebas y trabajo futuro). Es del 6 de octubre de 2026, así que no incluye el octavo módulo, los minijuegos ni el audio que se agregaron después.
 - [`app/docs/CAPITULO_DISENO_ARQUITECTURA.md`](app/docs/CAPITULO_DISENO_ARQUITECTURA.md): capítulo de diseño de ingeniería, con la justificación de pasar de Unity a Kotlin nativo.
 
-## Autoría
+## Autoría y créditos
 
-Desarrollado por **Santiago Matajira Rueda** ([@byckyka](https://github.com/byckyka)).
+Desarrollado por **Santiago Matajira Rueda** ([@byckyka](https://github.com/byckyka)) como Trabajo de Grado para optar al título de Ingeniero de Sistemas.
 
-© 2026 Santiago Matajira Rueda. Todos los derechos reservados. Este repositorio es público para consulta académica. Para usar, copiar o redistribuir el código o el contenido hace falta autorización del autor.
+| Rol | Nombre |
+|---|---|
+| Director | Javier Pinzón |
+| Asesores | Yamid Gamba, Daniel Cabrera, Leonardo Talero, Leonardo Pardo |
+| Institución | Universidad Autónoma de Bucaramanga, Facultad de Ingeniería, Ingeniería de Sistemas |
+
+### Recursos de terceros
+
+Los sprites, los tiles del mapa, la música y los efectos de sonido (`res/drawable/*.png` y `res/raw/*.mp3`) provienen de [Pixabay](https://pixabay.com) y se usan bajo la [Licencia de contenido de Pixabay](https://pixabay.com/service/license-summary/). Esa licencia permite el uso gratuito sin atribución obligatoria; aun así se reconoce aquí y en la pantalla de créditos del juego. Los derechos de estos recursos pertenecen a sus autores.
+
+© 2026 Santiago Matajira Rueda. Todos los derechos reservados sobre el código y el contenido educativo; no incluye los recursos de terceros listados arriba. Este repositorio es público para consulta académica. Para usar, copiar o redistribuir el código o el contenido hace falta autorización del autor.
