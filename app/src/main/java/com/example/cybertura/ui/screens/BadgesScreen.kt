@@ -27,6 +27,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import com.example.cybertura.research.ResearchStatus
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,9 +44,18 @@ fun BadgesScreen(
     uiState: BadgesUiState,
     onBackClick: () -> Unit,
     onCreditsClick: () -> Unit,
-    onResetProgress: () -> Unit
+    onResetProgress: () -> Unit,
+    researchStatus: ResearchStatus = ResearchStatus(),
+    onStartResearchSession: (code: String) -> Unit = {},
+    onEndResearchSession: () -> Unit = {},
+    onExportResearchToFolder: () -> Unit = {},
+    onShareResearch: () -> Unit = {},
+    onClearResearch: () -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
+    // Modo investigador: oculto para los niños (5 toques en el título + PIN)
+    var showPinDialog by remember { mutableStateOf(false) }
+    var showResearchPanel by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -84,7 +96,23 @@ fun BadgesScreen(
                             )
                         }
 
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.pointerInput(Unit) {
+                                // 5 toques seguidos (máx. 1,5 s entre uno y otro) abren el PIN
+                                var taps = 0
+                                var lastTapMs = 0L
+                                detectTapGestures(onTap = {
+                                    val now = System.currentTimeMillis()
+                                    taps = if (now - lastTapMs <= 1500) taps + 1 else 1
+                                    lastTapMs = now
+                                    if (taps >= 5) {
+                                        taps = 0
+                                        showPinDialog = true
+                                    }
+                                })
+                            }
+                        ) {
                             Text(
                                 text = "🏆 SALA DE TROFEOS",
                                 fontSize = 14.sp,
@@ -258,6 +286,31 @@ fun BadgesScreen(
                 }
             }
         }
+    }
+
+    if (showPinDialog) {
+        ResearchPinDialog(
+            onDismiss = { showPinDialog = false },
+            onUnlocked = {
+                showPinDialog = false
+                showResearchPanel = true
+            }
+        )
+    }
+
+    if (showResearchPanel) {
+        ResearchPanelDialog(
+            status = researchStatus,
+            onDismiss = { showResearchPanel = false },
+            onStartSession = { code ->
+                showResearchPanel = false
+                onStartResearchSession(code)
+            },
+            onEndSession = onEndResearchSession,
+            onExportToFolder = onExportResearchToFolder,
+            onShare = onShareResearch,
+            onClearData = onClearResearch
+        )
     }
 
     if (showResetDialog) {

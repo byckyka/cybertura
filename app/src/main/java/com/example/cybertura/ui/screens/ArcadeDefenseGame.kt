@@ -56,7 +56,9 @@ private enum class Outcome { DESTROYED, PASSED, HIT, WRONG_TAP }
 fun ArcadeDefenseGame(
     game: ArcadeGameState,
     onStartWave: () -> Unit,
-    onWaveEnded: (shieldsLost: Int, failed: Boolean) -> Unit
+    onWaveEnded: (shieldsLost: Int, failed: Boolean) -> Unit,
+    /** Cada objeto resuelto: [tapped] = el niño lo tocó; si no, llegó al bosque. */
+    onItemResolved: (item: ArcadeItem, tapped: Boolean) -> Unit = { _, _ -> }
 ) {
     // Sonido de oleada superada (la última la celebra el modal de victoria)
     LaunchedEffect(game.phase, game.waveIndex) {
@@ -86,7 +88,8 @@ fun ArcadeDefenseGame(
                         wave = game.wave,
                         pool = game.config.items,
                         maxShields = game.shields,
-                        onEnded = onWaveEnded
+                        onEnded = onWaveEnded,
+                        onItemResolved = onItemResolved
                     )
                 }
             } else {
@@ -188,11 +191,13 @@ private fun WaveRunner(
     wave: ArcadeWave,
     pool: List<ArcadeItem>,
     maxShields: Int,
-    onEnded: (shieldsLost: Int, failed: Boolean) -> Unit
+    onEnded: (shieldsLost: Int, failed: Boolean) -> Unit,
+    onItemResolved: (item: ArcadeItem, tapped: Boolean) -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
     val density = LocalDensity.current
     val currentOnEnded by rememberUpdatedState(onEnded)
+    val currentOnItemResolved by rememberUpdatedState(onItemResolved)
     val spawns = remember { buildWave(wave, pool) }
     val fallMs = wave.fallMs ?: 6000L
     val outcomes = remember { mutableStateMapOf<Int, Outcome>() }
@@ -218,6 +223,7 @@ private fun WaveRunner(
 
     fun tap(spawn: Spawn) {
         if (ended || spawn.uid in outcomes) return
+        currentOnItemResolved(spawn.item, true)
         if (spawn.item.isThreat) {
             outcomes[spawn.uid] = Outcome.DESTROYED
             haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -237,6 +243,7 @@ private fun WaveRunner(
             last = now
             for (spawn in spawns) {
                 if (spawn.uid in outcomes || elapsed < spawn.spawnAt + fallMs) continue
+                currentOnItemResolved(spawn.item, false)
                 if (spawn.item.isThreat) {
                     outcomes[spawn.uid] = Outcome.HIT
                     loseShield("🛡️ -1 · Se coló: ${spawn.item.text}. ${spawn.item.feedback}")

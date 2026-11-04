@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.cybertura.data.model.ArcadeChallenge
+import com.example.cybertura.data.model.ArcadeItem
 import com.example.cybertura.data.model.ArcadeWave
 import com.example.cybertura.data.model.Challenge
 import com.example.cybertura.data.model.ChatMessage
@@ -17,10 +18,12 @@ import com.example.cybertura.data.model.CyberModule
 import com.example.cybertura.data.model.Option
 import com.example.cybertura.data.model.SwipeCard
 import com.example.cybertura.data.repository.CyberRepository
+import com.example.cybertura.research.ResearchLogger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -237,11 +240,15 @@ data class SwipeGameState(
 class GameplayViewModel(
     private val repository: CyberRepository,
     private val moduleId: String,
-    private val challengeId: String
+    private val challengeId: String,
+    private val researchLogger: ResearchLogger? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GameplayUiState())
     val uiState: StateFlow<GameplayUiState> = _uiState.asStateFlow()
+
+    /** Intento que se está registrando para el piloto; null si el modo investigador no está activo. */
+    private var attempt: ResearchLogger.Attempt? = null
 
     init {
         loadChallenge()
@@ -283,6 +290,7 @@ class GameplayViewModel(
                         ?.let { ArcadeGameState(config = it) }
                 )
             }
+            attempt = researchLogger?.startAttempt(moduleId, module.title, challenge.type)
             if (_uiState.value.chat != null) {
                 viewModelScope.launch { playChatStep(0) }
             }
@@ -350,6 +358,7 @@ class GameplayViewModel(
         if (chat.phase != ChatPhase.CHOOSING) return
         val choice = chat.currentStep?.choices?.firstOrNull { it.id == choiceId } ?: return
         if (choice.id in chat.disabledChoiceIds) return
+        attempt?.answer(choice.isGood)
 
         val maxMeter = chat.meterIcons.size - 1
         updateChat {
@@ -416,6 +425,14 @@ class GameplayViewModel(
 
     /** El ladrón pone a prueba la llave armada. */
     fun forgeKey() {
+        _uiState.value.forge
+            ?.takeIf { it.phase == ForgePhase.EDITING && it.selectedIds.isNotEmpty() }
+            ?.let { forge ->
+                val level = KeyStrength.level(forge.key)
+                val goal = (forge.round.minLevel ?: 2).coerceIn(0, KeyStrength.MAX_LEVEL)
+                val trap = forge.selectedBlocks.firstOrNull { it.isTrap }
+                attempt?.answer(trap == null && level >= goal)
+            }
         updateForge { forge ->
             if (forge.phase != ForgePhase.EDITING || forge.selectedIds.isEmpty()) return@updateForge forge
             val key = forge.key
@@ -463,6 +480,13 @@ class GameplayViewModel(
 
     /** El niño decide qué hacer con su llave ante el ladrón. */
     fun chooseForgeOption(optionId: String) {
+        _uiState.value.forge
+            ?.takeIf { it.phase == ForgePhase.DEFENDING && optionId !in it.disabledOptionIds }
+            ?.let { forge ->
+                forge.round.options?.firstOrNull { it.id == optionId }?.let { option ->
+                    attempt?.answer(option.isGood)
+                }
+            }
         updateForge { forge ->
             if (forge.phase != ForgePhase.DEFENDING || optionId in forge.disabledOptionIds) return@updateForge forge
             val option = forge.round.options?.firstOrNull { it.id == optionId } ?: return@updateForge forge
@@ -526,7 +550,7 @@ class GameplayViewModel(
             1 -> "Solo una llave se te escapó, pero la arreglaste enseguida. ¡Muy bien!"
             else -> "El ladrón te ganó ${forge.mistakes} veces, pero aprendiste de cada intento y tus llaves quedaron indestructibles."
         }
-        finishMinigame(challenge, forge.stars, title, summary)
+        finishMinigame(challenge, forge.stars, title, summary, errors = forge.mistakes)
     }
 
     // ── Arcade "Defiende el bosque" ──────────────────────────────────────────
@@ -559,6 +583,11 @@ class GameplayViewModel(
         }
     }
 
+    /** Un objeto del arcade se resolvió: el niño lo tocó o lo dejó llegar al bosque. */
+    fun onArcadeItemResolved(item: ArcadeItem, tapped: Boolean) {
+        attempt?.answer(tapped == item.isThreat)
+    }
+
     private fun updateArcade(transform: (ArcadeGameState) -> ArcadeGameState) {
         _uiState.update { state -> state.arcade?.let { state.copy(arcade = transform(it)) } ?: state }
     }
@@ -577,7 +606,7 @@ class GameplayViewModel(
             else ->
                 "Los virus te ganaron ${arcade.wavesFailed} vez${if (arcade.wavesFailed > 1) "es" else ""}, pero no te rendiste y salvaste el bosque."
         }
-        finishMinigame(challenge, arcade.stars, title, summary)
+        finishMinigame(challenge, arcade.stars, title, summary, errors = arcade.shieldsLostTotal)
     }
 
     private fun finishChatGame(challenge: Challenge, chat: ChatGameState) {
@@ -591,7 +620,7 @@ class GameplayViewModel(
             1 -> "Te equivocaste solo una vez, pero supiste corregir el rumbo. ¡Muy bien!"
             else -> "Te equivocaste ${chat.mistakes} veces, pero aprendiste de cada error y llegaste al mejor final."
         }
-        finishMinigame(challenge, chat.stars, title, summary)
+        finishMinigame(challenge, chat.stars, title, summary, errors = chat.mistakes)
     }
 
     // ── Minijuego de deslizar ────────────────────────────────────────────────
@@ -605,6 +634,7 @@ class GameplayViewModel(
         val card = game.queue.firstOrNull() ?: return
 
         val correct = card.isSafe == saidSafe
+        attempt?.answer(correct)
         val rest = game.queue.drop(1)
         // Sin castigo: si falla, la carta vuelve al final del mazo para intentarlo otra vez
         val newQueue = if (correct) rest else rest + card
@@ -641,7 +671,7 @@ class GameplayViewModel(
             1 -> "Clasificaste las ${game.total} cartas con solo 1 error. ¡Casi perfecto!"
             else -> "Clasificaste las ${game.total} cartas. Te equivocaste ${game.mistakes} veces, pero aprendiste de cada una."
         }
-        finishMinigame(challenge, game.stars, title, summary)
+        finishMinigame(challenge, game.stars, title, summary, errors = game.mistakes)
     }
 
     // ── Minijuego del detective ──────────────────────────────────────────────
@@ -656,6 +686,7 @@ class GameplayViewModel(
         if (clueId != null && clueId in game.foundIds) return
 
         val isClue = clueId != null && game.clues.any { it.id == clueId }
+        attempt?.answer(isClue)
         val newGame = if (isClue) {
             val found = game.foundIds + clueId!!
             game.copy(
@@ -700,11 +731,18 @@ class GameplayViewModel(
             else ->
                 "Encontraste las ${game.total} pistas (usaste ${game.hintsUsed} ayuda${if (game.hintsUsed > 1) "s" else ""}). ¡La próxima las verás solo!"
         }
-        finishMinigame(challenge, game.stars, title, summary)
+        finishMinigame(challenge, game.stars, title, summary, errors = game.misses, hints = game.hintsUsed)
     }
 
     /** Cierre común de los minijuegos: modal de victoria con estrellas y reto completado. */
-    private fun finishMinigame(challenge: Challenge, stars: Int, title: String, summary: String) {
+    private fun finishMinigame(
+        challenge: Challenge,
+        stars: Int,
+        title: String,
+        summary: String,
+        errors: Int,
+        hints: Int = 0
+    ) {
         val starText = "★".repeat(stars) + "☆".repeat(3 - stars)
         _uiState.update {
             it.copy(
@@ -716,6 +754,10 @@ class GameplayViewModel(
             )
         }
         viewModelScope.launch {
+            // La XP solo se gana la primera vez que se completa el reto
+            val firstTime = challenge.id !in repository.userProgress.first().completedChallengeIds
+            attempt?.finish(errors, hints, stars, xpGained = if (firstTime) challenge.points else 0)
+            attempt = null
             repository.completeChallenge(moduleId, challenge.id, challenge.points)
             _uiState.update { it.copy(isChallengeCompleted = true) }
         }
@@ -724,6 +766,7 @@ class GameplayViewModel(
     fun selectOption(option: Option) {
         val challenge = _uiState.value.challenge ?: return
         val isCorrect = option.isCorrect
+        attempt?.answer(isCorrect)
 
         _uiState.update {
             it.copy(
@@ -747,15 +790,27 @@ class GameplayViewModel(
         _uiState.update { it.copy(showFeedback = false) }
     }
 
+    override fun onCleared() {
+        // Salió del minijuego sin terminarlo: queda registrado como abandonado
+        val state = _uiState.value
+        attempt?.abandon(
+            errors = state.swipe?.mistakes ?: state.spot?.misses ?: state.chat?.mistakes
+                ?: state.forge?.mistakes ?: state.arcade?.shieldsLostTotal ?: 0,
+            hints = state.spot?.hintsUsed ?: 0
+        )
+        attempt = null
+    }
+
     companion object {
         fun provideFactory(
             repository: CyberRepository,
             moduleId: String,
-            challengeId: String
+            challengeId: String,
+            researchLogger: ResearchLogger? = null
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return GameplayViewModel(repository, moduleId, challengeId) as T
+                return GameplayViewModel(repository, moduleId, challengeId, researchLogger) as T
             }
         }
     }

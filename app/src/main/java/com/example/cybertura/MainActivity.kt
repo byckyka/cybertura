@@ -13,11 +13,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val repository = (application as CyberturaApplication).repository
+        val app = application as CyberturaApplication
 
         setContent {
             CyberturaTheme {
-                CyberturaNavHost(repository = repository)
+                CyberturaNavHost(repository = app.repository, researchLogger = app.researchLogger)
             }
         }
     }

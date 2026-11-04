@@ -1,6 +1,11 @@
 package com.example.cybertura.ui.navigation
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import com.example.cybertura.research.ResearchLogger
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.cybertura.audio.SoundManager
@@ -28,6 +33,7 @@ import com.example.cybertura.ui.viewmodel.GameplayViewModel
 @Composable
 fun CyberturaNavHost(
     repository: CyberRepository,
+    researchLogger: ResearchLogger? = null,
     navController: NavHostController = rememberNavController()
 ) {
     // Detectar si es la primera vez (tutorial no visto). Se lee una sola vez al abrir la app:
@@ -129,7 +135,7 @@ fun CyberturaNavHost(
 
             val gameplayViewModel: GameplayViewModel = viewModel(
                 key = "$moduleId-$challengeId",
-                factory = GameplayViewModel.provideFactory(repository, moduleId, challengeId)
+                factory = GameplayViewModel.provideFactory(repository, moduleId, challengeId, researchLogger)
             )
             val uiState by gameplayViewModel.uiState.collectAsState()
 
@@ -162,7 +168,8 @@ fun CyberturaNavHost(
                 onChooseForgeOption = { gameplayViewModel.chooseForgeOption(it) },
                 onContinueForge = { gameplayViewModel.continueForge() },
                 onStartArcadeWave = { gameplayViewModel.startArcadeWave() },
-                onArcadeWaveEnded = { lost, failed -> gameplayViewModel.onArcadeWaveEnded(lost, failed) }
+                onArcadeWaveEnded = { lost, failed -> gameplayViewModel.onArcadeWaveEnded(lost, failed) },
+                onArcadeItemResolved = { item, tapped -> gameplayViewModel.onArcadeItemResolved(item, tapped) }
             )
         }
 
@@ -202,22 +209,41 @@ fun CyberturaNavHost(
         // ── Sala de Medallas / Trofeos ────────────────────────────────────────
         composable(Screen.Badges.route) {
             val badgesViewModel: BadgesViewModel = viewModel(
-                factory = BadgesViewModel.provideFactory(repository)
+                factory = BadgesViewModel.provideFactory(repository, researchLogger)
             )
             val uiState by badgesViewModel.uiState.collectAsState()
+            val researchStatus by badgesViewModel.researchStatus.collectAsState()
+            val context = LocalContext.current
+            // El investigador elige una carpeta (ej. Descargas) y ahí se guardan los CSV
+            val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                if (uri != null) {
+                    badgesViewModel.exportToFolder(context.contentResolver, uri) { ok ->
+                        val msg = if (ok) "Se guardó el archivo de resultados (CSV)" else "No se pudo guardar el archivo"
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+            val restartAdventure = {
+                // Vaciar toda la pila: el mundo (y su ViewModel) se crea de nuevo
+                // y la aventura arranca otra vez desde el tutorial.
+                navController.navigate(Screen.Tutorial.route) {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                }
+            }
 
             BadgesScreen(
                 uiState = uiState,
                 onBackClick = { navController.popBackStack() },
                 onCreditsClick = { navController.navigate(Screen.Credits.route) },
-                onResetProgress = {
-                    badgesViewModel.resetProgress {
-                        // Vaciar toda la pila: el mundo (y su ViewModel) se crea de nuevo
-                        // y la aventura arranca otra vez desde el tutorial.
-                        navController.navigate(Screen.Tutorial.route) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                        }
-                    }
+                onResetProgress = { badgesViewModel.resetProgress(restartAdventure) },
+                researchStatus = researchStatus,
+                onStartResearchSession = { code -> badgesViewModel.startResearchSession(code, restartAdventure) },
+                onEndResearchSession = { badgesViewModel.endResearchSession() },
+                onExportResearchToFolder = { folderPicker.launch(null) },
+                onShareResearch = { badgesViewModel.buildShareIntent { context.startActivity(it) } },
+                onClearResearch = {
+                    badgesViewModel.clearResearchData()
+                    Toast.makeText(context, "Datos del piloto borrados", Toast.LENGTH_SHORT).show()
                 }
             )
         }

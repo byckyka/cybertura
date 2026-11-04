@@ -53,7 +53,8 @@ fun GameplayScreen(
     onChooseForgeOption: (optionId: String) -> Unit = {},
     onContinueForge: () -> Unit = {},
     onStartArcadeWave: () -> Unit = {},
-    onArcadeWaveEnded: (shieldsLost: Int, failed: Boolean) -> Unit = { _, _ -> }
+    onArcadeWaveEnded: (shieldsLost: Int, failed: Boolean) -> Unit = { _, _ -> },
+    onArcadeItemResolved: (item: com.example.cybertura.data.model.ArcadeItem, tapped: Boolean) -> Unit = { _, _ -> }
 ) {
     val challenge = uiState.challenge
     val module = uiState.module
@@ -354,7 +355,8 @@ fun GameplayScreen(
                         ArcadeDefenseGame(
                             game = arcade,
                             onStartWave = onStartArcadeWave,
-                            onWaveEnded = onArcadeWaveEnded
+                            onWaveEnded = onArcadeWaveEnded,
+                            onItemResolved = onArcadeItemResolved
                         )
                     } else {
                         // ─── Options ───────────────────────────────

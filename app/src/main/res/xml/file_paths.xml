@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Solo se comparte la copia temporal de los CSV que se arma al exportar -->
+<paths>
+    <cache-path name="export" path="export/" />
+</paths>
