@@ -72,35 +72,32 @@ class DataStoreManager(private val context: Context) {
             )
         }
 
+    /**
+     * Registra un reto completado. Todo se decide y se guarda dentro de una sola edición de
+     * DataStore, de modo que dos llamadas seguidas no pueden pisarse: los puntos se suman solo
+     * la primera vez y la medalla se otorga cuando están hechos todos los retos del módulo.
+     */
     suspend fun recordChallengeSuccess(
         challengeId: String,
-        pointsAwarded: Int,
-        moduleId: String? = null,
-        isModuleCompletedNow: Boolean = false,
-        badgeIdToUnlock: String? = null
+        points: Int,
+        moduleId: String,
+        moduleChallengeIds: Set<String>,
+        badgeId: String
     ) {
         context.dataStore.edit { preferences ->
-            val currentChallenges = preferences[KEY_COMPLETED_CHALLENGES]?.toMutableSet() ?: mutableSetOf()
-            val wasAlreadyCompleted = currentChallenges.contains(challengeId)
+            val previous = preferences[KEY_COMPLETED_CHALLENGES].orEmpty()
+            val challenges = previous + challengeId
+            preferences[KEY_COMPLETED_CHALLENGES] = challenges
 
-            currentChallenges.add(challengeId)
-            preferences[KEY_COMPLETED_CHALLENGES] = currentChallenges
-
-            if (!wasAlreadyCompleted) {
-                val currentScore = preferences[KEY_TOTAL_SCORE] ?: 0
-                preferences[KEY_TOTAL_SCORE] = currentScore + pointsAwarded
+            if (challengeId !in previous) {
+                preferences[KEY_TOTAL_SCORE] = (preferences[KEY_TOTAL_SCORE] ?: 0) + points
             }
 
-            if (isModuleCompletedNow && moduleId != null) {
-                val currentModules = preferences[KEY_COMPLETED_MODULES]?.toMutableSet() ?: mutableSetOf()
-                currentModules.add(moduleId)
-                preferences[KEY_COMPLETED_MODULES] = currentModules
-            }
-
-            if (!badgeIdToUnlock.isNullOrBlank()) {
-                val currentBadges = preferences[KEY_UNLOCKED_BADGES]?.toMutableSet() ?: mutableSetOf()
-                currentBadges.add(badgeIdToUnlock)
-                preferences[KEY_UNLOCKED_BADGES] = currentBadges
+            if (moduleChallengeIds.isNotEmpty() && challenges.containsAll(moduleChallengeIds)) {
+                preferences[KEY_COMPLETED_MODULES] = preferences[KEY_COMPLETED_MODULES].orEmpty() + moduleId
+                if (badgeId.isNotBlank()) {
+                    preferences[KEY_UNLOCKED_BADGES] = preferences[KEY_UNLOCKED_BADGES].orEmpty() + badgeId
+                }
             }
         }
     }

@@ -6,7 +6,6 @@ import com.example.cybertura.data.model.Challenge
 import com.example.cybertura.data.model.CyberModule
 import com.example.cybertura.data.model.UserProgress
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 
 class CyberRepository(
     private val jsonDataLoader: JsonDataLoader,
@@ -38,23 +37,13 @@ class CyberRepository(
     }
 
     suspend fun completeChallenge(moduleId: String, challengeId: String, points: Int) {
-        val currentProgress = userProgress.first()
         val module = getModuleById(moduleId) ?: return
-
-        val alreadyCompleted = currentProgress.completedChallengeIds.contains(challengeId)
-        val allModuleChallenges = module.challenges.map { it.id }.toSet()
-        
-        // Check if completing this challenge makes all challenges in the module completed
-        val willBeCompleted = currentProgress.completedChallengeIds + challengeId
-        val isModuleFinished = allModuleChallenges.isNotEmpty() && willBeCompleted.containsAll(allModuleChallenges)
-        val badgeToUnlock = if (isModuleFinished) module.badgeId else null
-
         dataStoreManager.recordChallengeSuccess(
             challengeId = challengeId,
-            pointsAwarded = if (alreadyCompleted) 0 else points,
+            points = points,
             moduleId = moduleId,
-            isModuleCompletedNow = isModuleFinished,
-            badgeIdToUnlock = badgeToUnlock
+            moduleChallengeIds = module.challenges.map { it.id }.toSet(),
+            badgeId = module.badgeId
         )
     }
 

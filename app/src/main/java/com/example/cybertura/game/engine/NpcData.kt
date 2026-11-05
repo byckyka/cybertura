@@ -180,7 +180,7 @@ object NpcRegistry {
             moduleId = null,
             emoji = "👨‍🌾",
             tileX = 18f,
-            tileY = 30f, // Cerca del lago interior
+            tileY = 27f, // Orilla norte del lago interior
             greetingDialog = "El agua está muy tranquila hoy. Recuerda que no todo lo que brilla en internet es oro... a veces es un anzuelo del Capitán Anzuelo. ¡Habla con él en el muelle!"
         ),
         NpcData(
