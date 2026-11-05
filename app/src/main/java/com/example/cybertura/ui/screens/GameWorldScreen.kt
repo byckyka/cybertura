@@ -55,52 +55,11 @@ fun GameWorldScreen(
     val gameState by viewModel.gameState.collectAsState()
     val context = LocalContext.current
 
-    // --- Assets de Ambiente (remember evita recargas en cada recomposición) ---
-    val worldAssets = remember {
-        com.example.cybertura.game.renderer.WorldAssets(
-            grassSheet    = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_earth),
-            waterImg      = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_water),
-            water5Img     = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.water5_pipo),
-            earthImg      = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_earth),
-            baseImg       = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_base),
-            cornerImg     = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_corner_ld),
-            crossroadsImg = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_crossroads),
-            lairImg       = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_lair),
-            bonesImg      = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_bones),
-            bushImg       = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_bush),
-            cartelImg     = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_cartel),
-            graveImg      = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_grave),
-            lukeImg       = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_luke),
-            mushroomImg   = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_mushroom),
-            skullImg      = androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.tile_skull)
-        )
-    }
-
-
-    // --- Assets de Personajes ---
-    val playerSprite = remember {
-        androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.thief_idle_1)
-    }
-    val npcSprites = remember {
-        mapOf(
-            "npc_passwords"  to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.alchemist_idle_1),
-            "npc_phishing"   to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.blacksmith_idle_1),
-            "npc_privacy"    to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.princess_idle_1),
-            "npc_bullying"   to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.mage_idle_1),
-            "npc_social"     to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.king_idle_1),
-            "npc_villager_1" to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.townsfolk_m_idle_1),
-            "npc_villager_2" to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.butcher_idle_1),
-            "npc_villager_3" to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.herald_idle_1),
-            // Maestros y habitantes dentro de las casas
-            "npc_wifi"       to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.herald_idle_1),
-            "npc_gaming"     to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.executioner_idle_1),
-            "npc_forest"     to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.alchemist_idle_1),
-            "npc_abuela"     to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.princess_idle_1),
-            "npc_tio_bits"   to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.butcher_idle_1),
-            "npc_mama_cora"  to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.townsfolk_m_idle_1),
-            "npc_hermana_luna" to androidx.compose.ui.graphics.ImageBitmap.imageResource(context.resources, com.example.cybertura.R.drawable.mage_idle_1)
-        )
-    }
+    // --- Imágenes: se cargan una sola vez, no al volver de cada reto ---
+    val sprites = remember { com.example.cybertura.game.renderer.GameSprites.get(context.resources) }
+    val worldAssets = sprites.world
+    val playerSprite = sprites.player
+    val npcSprites = sprites.npcs
 
     // --- Bucle de juego: corre solo mientras esta pantalla está visible ---
     LifecycleStartEffect(viewModel) {
