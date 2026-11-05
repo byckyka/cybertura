@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cybertura.data.model.UserProgress
+import com.example.cybertura.game.engine.NpcRegistry
 import com.example.cybertura.ui.theme.*
 import kotlin.math.sin
 
@@ -372,8 +373,10 @@ fun CyberTopBar(
 
                 // Mini XP bar en el HUD
                 if (progress != null) {
+                    // Con los 8 módulos hechos no queda XP por ganar: la barra se muestra llena
+                    val adventureComplete = NpcRegistry.questNpcs.all { it.moduleId in progress.completedModuleIds }
                     XpBar(
-                        currentXp = progress.currentXp,
+                        currentXp = if (adventureComplete) progress.xpToNextLevel else progress.currentXp,
                         maxXp = progress.xpToNextLevel,
                         level = progress.level,
                         showLevel = false,
