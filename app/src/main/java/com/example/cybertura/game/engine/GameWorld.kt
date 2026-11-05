@@ -243,7 +243,7 @@ object GameWorld {
 
         // ── Lago interior (fila 28-36, col 16-21) ───────────────────────
         if (c in 16..21 && r in 28..36) {
-            if (r == 32 && c == 18) return BR  // Puente sobre el lago
+            if (r == 32 && c <= 18) return BR  // Muelle del Pescador, desde la orilla oeste
             return WI
         }
 

@@ -180,7 +180,8 @@ object NpcRegistry {
             moduleId = null,
             emoji = "👨‍🌾",
             tileX = 18f,
-            tileY = 27f, // Orilla norte del lago interior
+            tileY = 32f, // En el muelle, a mitad del lago interior
+            wanderRadius = 0f,
             greetingDialog = "El agua está muy tranquila hoy. Recuerda que no todo lo que brilla en internet es oro... a veces es un anzuelo del Capitán Anzuelo. ¡Habla con él en el muelle!"
         ),
         NpcData(
@@ -252,8 +253,7 @@ object NpcRegistry {
     fun npcsInMap(mapId: String): List<NpcData> = npcs.filter { it.mapId == mapId }
 
     /** Lista de NPCs de misión ordenados por questOrder */
-    val questNpcs: List<NpcData>
-        get() = npcs.filter { it.questOrder != null }.sortedBy { it.questOrder }
+    val questNpcs: List<NpcData> = npcs.filter { it.questOrder != null }.sortedBy { it.questOrder }
 
     /**
      * Devuelve el ID del siguiente NPC de misión que el jugador debe visitar,

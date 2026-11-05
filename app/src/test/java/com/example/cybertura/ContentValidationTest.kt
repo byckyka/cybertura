@@ -3,6 +3,7 @@ package com.example.cybertura
 import com.example.cybertura.data.model.Challenge
 import com.example.cybertura.data.model.ForgeRound
 import com.example.cybertura.data.model.GameData
+import com.example.cybertura.game.engine.GameState
 import com.example.cybertura.game.engine.GameWorld
 import com.example.cybertura.game.engine.KeyStrength
 import com.example.cybertura.game.engine.MapIds
@@ -195,6 +196,33 @@ class ContentValidationTest {
                 }
             }
         }
+        assertNoProblems(problems)
+    }
+
+    /** Tiles del exterior a los que el jugador puede llegar caminando desde el inicio. */
+    private fun reachableExteriorTiles(): Set<Pair<Int, Int>> {
+        val start = GameWorld.playerSpawnX.toInt() to GameWorld.playerSpawnY.toInt()
+        val seen = mutableSetOf(start)
+        val pending = ArrayDeque(listOf(start))
+        while (pending.isNotEmpty()) {
+            val (c, r) = pending.removeFirst()
+            listOf(c + 1 to r, c - 1 to r, c to r + 1, c to r - 1)
+                .filter { (x, y) -> GameWorld.isWalkable(MapIds.EXTERIOR, x, y) && seen.add(x to y) }
+                .forEach { pending.addLast(it) }
+        }
+        return seen
+    }
+
+    @Test
+    fun npc_del_exterior_estan_al_alcance_del_jugador() {
+        val reachable = reachableExteriorTiles()
+        val problems = NpcRegistry.npcs.filter { it.mapId == MapIds.EXTERIOR }.filterNot { npc ->
+            reachable.any { (c, r) ->
+                val dx = c - npc.tileX
+                val dy = r - npc.tileY
+                dx * dx + dy * dy <= GameState.NPC_INTERACT_RADIUS * GameState.NPC_INTERACT_RADIUS
+            }
+        }.map { "${it.id}: el jugador no puede acercarse para hablarle" }
         assertNoProblems(problems)
     }
 

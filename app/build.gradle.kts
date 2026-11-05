@@ -21,9 +21,12 @@ android {
 
     buildTypes {
         release {
+            // R8 reduce y optimiza el código; se firma con la llave de depuración porque no se publica
             optimization {
-                enable = false
+                enable = true
             }
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
