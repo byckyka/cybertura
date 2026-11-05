@@ -79,6 +79,7 @@ private val creditSections: List<CreditSection>
             lines = listOf(
                 CreditLine("Pixabay", "Sprites, escenarios, música y efectos de sonido · pixabay.com"),
                 CreditLine("Licencia de contenido de Pixabay", "Gracias a los artistas que comparten su trabajo"),
+                CreditLine("Pipoya", "Tileset de agua · pipoya.net"),
                 CreditLine("Ícono de la app", "Generado con inteligencia artificial (ChatGPT, OpenAI)")
             )
         )

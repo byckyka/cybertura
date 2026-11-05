@@ -34,7 +34,7 @@ fun TutorialScreen(
     val questNpcs = NpcRegistry.questNpcs  // Los 5 maestros en orden
     var currentSlide by remember { mutableIntStateOf(0) }
 
-    // Slide 0 = bienvenida, slides 1-5 = NPCs, slide 6 = ¡A jugar!
+    // Slide 0 = bienvenida, slides 1-8 = maestros, slide 9 = ¡A jugar!
     val totalSlides = questNpcs.size + 2 // bienvenida + un slide por maestro + cierre
 
     Box(
