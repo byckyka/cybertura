@@ -25,10 +25,13 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         SoundManager.onAppForeground()
+        (application as CyberturaApplication).researchLogger.onAppForeground()
     }
 
     override fun onStop() {
         super.onStop()
         SoundManager.onAppBackground()
+        // El piloto mide el tiempo de juego: lo que pase con la app oculta no cuenta
+        (application as CyberturaApplication).researchLogger.onAppBackground()
     }
 }
