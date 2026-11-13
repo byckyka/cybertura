@@ -1,5 +1,44 @@
 # CyberTura — Documentación Técnica
 
+> **Actualización de noviembre de 2026.** El resto de este documento describe la versión del 6 de octubre de 2026. Esta sección resume lo que cambió después; donde haya diferencias, manda esta sección y el `README.md`.
+
+## Actualización de noviembre de 2026
+
+### Estructura de un módulo
+
+Cada uno de los 8 módulos sigue ahora la secuencia **mini lección → minijuego → pregunta de situación real**:
+
+- `lesson` (en `cyber_content.json`): 2 a 4 tarjetas que se leen antes del minijuego. Pantalla: `LessonScreen`.
+- Primer reto: el minijuego del módulo (`FORGE_KEY`, `SWIPE_SORT`, `CHAT_STORY`, `SPOT_THE_CLUES` o `TAP_DEFENSE`). Da de 1 a 3 estrellas y se guarda la mejor marca.
+- Segundo reto: una pregunta `MULTIPLE_CHOICE` con las opciones en orden aleatorio. Una opción equivocada queda tachada con su explicación y se vuelve a elegir. Vale 50 XP, que se restaron al minijuego del mismo módulo; el total sigue en 2500 XP.
+
+Un módulo ya superado se puede repasar hablando otra vez con su maestro (`NpcRegistry.dialogFor`).
+
+### Arquitectura
+
+- **Reglas separadas del ViewModel.** `GameplayViewModel` solo orquesta. Los estados de los minijuegos están en `MinigameStates.kt` y sus reglas en `MinigameRules.kt`, como funciones puras (estado → siguiente estado) que se prueban sin Android. La simulación del arcade es `game/engine/ArcadeWaveSim`.
+- **Pantalla del mundo.** El estado que cambia en cada cuadro se lee solo dentro del `Canvas`; el resto de la pantalla observa `WorldUiState`, un resumen que cambia con las acciones del jugador.
+- **Persistencia.** `DataStoreManager` recibe el `DataStore` ya creado (se prueba con un archivo temporal). Guarda además el alias, el personaje y la mejor marca de estrellas de cada minijuego (`stars_<idReto>`).
+- **Audio.** `SeamlessLoop` arma el bucle de la música sobre el mismo arreglo decodificado (una sola copia en memoria). `AmbientLoopPlayer` captura `Throwable`: quedarse sin memoria deja el juego sin música en vez de cerrarlo. `Narrator` lee textos con `TextToSpeech` si el teléfono tiene voz en español.
+- **Dependencias.** Todas están en `gradle/libs.versions.toml`.
+
+### Datos del piloto
+
+- `ForegroundClock`: la duración de un intento solo suma el tiempo con la app en pantalla.
+- `ResearchReport`: el CSV tiene una fila por participante y reto (minijuego y pregunta). En la pregunta, «Errores» son las opciones equivocadas antes de acertar.
+- `ResearchSurvey`: encuesta de percepción de 6 preguntas con escala de 1 a 5, sin respuesta marcada de antemano; lo no respondido se guarda como 0 y sale vacío en el CSV.
+- Todo lo que toca los archivos del piloto corre en un solo hilo de escritura, fuera del hilo principal.
+
+### Pruebas
+
+108 pruebas unitarias en la JVM (antes 16). El detalle por archivo está en el `README.md`.
+
+### Pendiente de verificar en un teléfono real
+
+Los módulos 2 a 8 y el arcade en pantalla, la voz de la narración, la fluidez del mundo y la exportación del CSV desde el selector de carpetas. En el emulador solo se recorrió el módulo 1.
+
+---
+
 > **Desarrollo de un prototipo de juego móvil educativo para el aprendizaje de conceptos básicos de ciberseguridad en niños de 11 a 12 años de Bucaramanga: "Cybertura, una aventura de ciberseguridad"**
 > Auditoría de código fuente y documentación técnica del prototipo, complementaria al anteproyecto de Proyecto de Grado.
 
