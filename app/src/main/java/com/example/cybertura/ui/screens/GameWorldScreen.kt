@@ -54,7 +54,26 @@ fun GameWorldScreen(
     onNavigateToModule: (String) -> Unit,
     onBadgesClick: () -> Unit
 ) {
-    val gameState by viewModel.gameState.collectAsState()
+    // El estado completo cambia en cada cuadro: solo se lee dentro del Canvas (fase de dibujo).
+    val frameState = viewModel.gameState.collectAsState()
+    // Lo que usa el resto de la pantalla cambia pocas veces; al observarlo aparte, los botones,
+    // el banner y el diálogo no se recomponen 60 veces por segundo.
+    val ui by remember {
+        derivedStateOf {
+            frameState.value.let {
+                WorldUiState(
+                    isWalking = it.isWalking,
+                    showDialog = it.showDialog,
+                    currentMapId = it.currentMapId,
+                    nearbyNpcId = it.nearbyNpcId,
+                    dialogNpcId = it.dialogNpcId,
+                    dialogText = it.dialogText,
+                    dialogAction = it.dialogAction,
+                    nextQuestNpcId = it.nextQuestNpcId
+                )
+            }
+        }
+    }
     val context = LocalContext.current
 
     // --- Imágenes: se cargan una sola vez, no al volver de cada reto ---
@@ -71,32 +90,32 @@ fun GameWorldScreen(
 
     // --- Sonido ---
     // Pasos en bucle mientras el jugador camina; se cortan al salir de la pantalla
-    LaunchedEffect(gameState.isWalking) {
-        SoundManager.setWalking(gameState.isWalking)
+    LaunchedEffect(ui.isWalking) {
+        SoundManager.setWalking(ui.isWalking)
     }
     DisposableEffect(Unit) {
         onDispose { SoundManager.setWalking(false) }
     }
     // Al abrir un diálogo con un NPC
-    LaunchedEffect(gameState.showDialog) {
-        if (gameState.showDialog) SoundManager.playChat()
+    LaunchedEffect(ui.showDialog) {
+        if (ui.showDialog) SoundManager.playChat()
     }
     // Al cruzar una puerta, tanto al entrar como al salir de una casa (no al cargar la pantalla)
-    var previousMapId by remember { mutableStateOf(gameState.currentMapId) }
-    LaunchedEffect(gameState.currentMapId) {
-        if (gameState.currentMapId != previousMapId) {
+    var previousMapId by remember { mutableStateOf(ui.currentMapId) }
+    LaunchedEffect(ui.currentMapId) {
+        if (ui.currentMapId != previousMapId) {
             SoundManager.playDoor()
         }
-        previousMapId = gameState.currentMapId
+        previousMapId = ui.currentMapId
     }
 
     // Desvanecimiento al cruzar una puerta + cartel con el nombre del lugar
     val fade = remember { Animatable(0f) }
     var showPlaceChip by remember { mutableStateOf(false) }
-    LaunchedEffect(gameState.currentMapId) {
+    LaunchedEffect(ui.currentMapId) {
         fade.snapTo(1f)
         fade.animateTo(0f, tween(450))
-        if (GameWorld.isInterior(gameState.currentMapId)) {
+        if (GameWorld.isInterior(ui.currentMapId)) {
             showPlaceChip = true
             delay(2600)
         }
@@ -110,28 +129,29 @@ fun GameWorldScreen(
     ) {
         // 1. El Mundo 2D (Renderizado en Canvas)
         Canvas(modifier = Modifier.fillMaxSize()) {
+            val frame = frameState.value
             // La cámara sigue al jugador
-            val cameraX = gameState.playerX + 0.5f
-            val cameraY = gameState.playerY + 0.5f
-            val isInside = GameWorld.isInterior(gameState.currentMapId)
+            val cameraX = frame.playerX + 0.5f
+            val cameraY = frame.playerY + 0.5f
+            val isInside = GameWorld.isInterior(ui.currentMapId)
 
             // Dibujar el mapa (calle o interior) con todos los assets
-            drawWorldMap(cameraX, cameraY, worldAssets, gameState.currentMapId)
+            drawWorldMap(cameraX, cameraY, worldAssets, ui.currentMapId)
 
             // Dibujar NPCs y Jugador con sus nuevas imágenes
-            drawSprites(gameState, NpcRegistry.npcs, playerSprite, npcSprites)
+            drawSprites(frame, NpcRegistry.npcs, playerSprite, npcSprites)
 
             // Ambiente: oscuro en la calle (atmósfera RPG), cálido y claro dentro de casa,
             // y en penumbra bajo los árboles del bosque
             val shade = when {
-                gameState.currentMapId == MapIds.FOREST -> 0.22f
+                ui.currentMapId == MapIds.FOREST -> 0.22f
                 isInside -> 0.1f
                 else -> 0.45f
             }
             drawRect(color = Color.Black.copy(alpha = shade))
 
             // Partículas (Lluvia Digital)
-            for (p in gameState.particles) {
+            for (p in frame.particles) {
                 drawRect(
                     color = NeonCyan.copy(alpha = p.alpha),
                     topLeft = Offset(p.x * size.width, p.y * size.height),
@@ -149,7 +169,7 @@ fun GameWorldScreen(
                 progress = userProgress,
                 showBack = false
             )
-            ObjectiveBanner(gameState)
+            ObjectiveBanner(ui.nextQuestNpcId, ui.currentMapId)
             AnimatedVisibility(
                 visible = showPlaceChip,
                 enter = fadeIn(),
@@ -163,7 +183,7 @@ fun GameWorldScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Text(
-                        text = GameWorld.mapName(gameState.currentMapId),
+                        text = GameWorld.mapName(ui.currentMapId),
                         color = TextPrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
@@ -202,7 +222,7 @@ fun GameWorldScreen(
 
                 // Botón Acción A
                 ActionButton(
-                    isHighlighted = gameState.nearbyNpcId != null && !gameState.showDialog,
+                    isHighlighted = ui.nearbyNpcId != null && !ui.showDialog,
                     onClick = { viewModel.interact() }
                 )
             }
@@ -210,22 +230,22 @@ fun GameWorldScreen(
 
         // 4. Sistema de Diálogo tipo Pokémon
         AnimatedVisibility(
-            visible = gameState.showDialog,
+            visible = ui.showDialog,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            gameState.dialogNpcId?.let { npcId ->
+            ui.dialogNpcId?.let { npcId ->
                 val npc = NpcRegistry.getNpcById(npcId)
                 if (npc != null) {
                     PokemonDialogBox(
                         npc = npc,
-                        dialogText = gameState.dialogText,
-                        action = gameState.dialogAction,
+                        dialogText = ui.dialogText,
+                        action = ui.dialogAction,
                         onStartQuest = {
                             viewModel.closeDialog()
                             // Aceptar el reto o repasarlo llevan a la misma pantalla del módulo
-                            if (npc.moduleId != null && gameState.dialogAction != DialogAction.NONE) {
+                            if (npc.moduleId != null && ui.dialogAction != DialogAction.NONE) {
                                 onNavigateToModule(npc.moduleId)
                             }
                         },
@@ -241,9 +261,9 @@ fun GameWorldScreen(
 
 /** Franja con el objetivo actual: a quién buscar y, si está dentro de una casa, cuándo entrar. */
 @Composable
-private fun ObjectiveBanner(state: GameState) {
-    val target = state.nextQuestNpcId?.let { NpcRegistry.getNpcById(it) }
-    val inside = GameWorld.isInterior(state.currentMapId)
+private fun ObjectiveBanner(nextQuestNpcId: String?, currentMapId: String) {
+    val target = nextQuestNpcId?.let { NpcRegistry.getNpcById(it) }
+    val inside = GameWorld.isInterior(currentMapId)
 
     val title: String
     val detail: String
@@ -252,12 +272,12 @@ private fun ObjectiveBanner(state: GameState) {
             title = "🏆 ¡Todas las misiones completadas!"
             detail = "Eres un Campeón Legendario. Explora CyberTura cuando quieras."
         }
-        target.mapId == state.currentMapId -> {
+        target.mapId == currentMapId -> {
             title = "🎯 Habla con ${target.name}"
             detail = if (inside) "¡Está aquí dentro! Acércate y presiona A." else "Está ${target.locationHint}."
         }
         inside -> {
-            title = if (state.currentMapId == MapIds.FOREST) "🌲 Este no es el lugar de tu misión" else "🚪 Esta no es la casa de tu misión"
+            title = if (currentMapId == MapIds.FOREST) "🌲 Este no es el lugar de tu misión" else "🚪 Esta no es la casa de tu misión"
             detail = "Sal por la flecha verde de abajo. ${target.name} está ${target.locationHint}."
         }
         target.mapId == MapIds.FOREST -> {
@@ -390,6 +410,18 @@ fun ActionButton(
         )
     }
 }
+
+/** Lo que la pantalla del mundo necesita fuera del Canvas; cambia solo con acciones del jugador. */
+private data class WorldUiState(
+    val isWalking: Boolean,
+    val showDialog: Boolean,
+    val currentMapId: String,
+    val nearbyNpcId: String?,
+    val dialogNpcId: String?,
+    val dialogText: String,
+    val dialogAction: DialogAction,
+    val nextQuestNpcId: String?
+)
 
 @Composable
 fun PokemonDialogBox(
