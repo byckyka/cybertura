@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cybertura"
+    namespace = "io.github.byckyka.cybertura"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.cybertura"
+        applicationId = "io.github.byckyka.cybertura"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

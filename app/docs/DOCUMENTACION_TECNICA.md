@@ -21,17 +21,19 @@ Un módulo ya superado se puede repasar hablando otra vez con su maestro (`NpcRe
 - **Persistencia.** `DataStoreManager` recibe el `DataStore` ya creado (se prueba con un archivo temporal). Guarda además el alias, el personaje y la mejor marca de estrellas de cada minijuego (`stars_<idReto>`).
 - **Audio.** `SeamlessLoop` arma el bucle de la música sobre el mismo arreglo decodificado (una sola copia en memoria). `AmbientLoopPlayer` captura `Throwable`: quedarse sin memoria deja el juego sin música en vez de cerrarlo. `Narrator` lee textos con `TextToSpeech` si el teléfono tiene voz en español.
 - **Dependencias.** Todas están en `gradle/libs.versions.toml`.
+- **Paquete.** El identificador pasó de `com.example.cybertura` a `io.github.byckyka.cybertura`.
 
 ### Datos del piloto
 
 - `ForegroundClock`: la duración de un intento solo suma el tiempo con la app en pantalla.
 - `ResearchReport`: el CSV tiene una fila por participante y reto (minijuego y pregunta). En la pregunta, «Errores» son las opciones equivocadas antes de acertar.
+- `KnowledgeTest`: cuestionario de conocimientos de 8 preguntas (una por módulo) que se responde antes y después de jugar; no muestra si la respuesta fue correcta y ofrece «No lo sé». En el CSV sale una fila por participante y momento.
 - `ResearchSurvey`: encuesta de percepción de 6 preguntas con escala de 1 a 5, sin respuesta marcada de antemano; lo no respondido se guarda como 0 y sale vacío en el CSV.
 - Todo lo que toca los archivos del piloto corre en un solo hilo de escritura, fuera del hilo principal.
 
 ### Pruebas
 
-108 pruebas unitarias en la JVM (antes 16). El detalle por archivo está en el `README.md`.
+117 pruebas unitarias en la JVM (antes 16). El detalle por archivo está en el `README.md`.
 
 ### Pendiente de verificar en un teléfono real
 
@@ -44,7 +46,7 @@ Los módulos 2 a 8 y el arcade en pantalla, la voz de la narración, la fluidez 
 
 | Campo | Valor |
 |---|---|
-| Aplicación | `cybertura` (`applicationId = com.example.cybertura`) |
+| Aplicación | `cybertura` (`applicationId = io.github.byckyka.cybertura`) |
 | Versión | `versionName 1.0` / `versionCode 1` (`app/build.gradle.kts`) |
 | Plataforma | Android nativo, Kotlin + Jetpack Compose |
 | Código analizado | 7 234 líneas Kotlin, 1 módulo Gradle (`:app`) |
@@ -54,7 +56,7 @@ Los módulos 2 a 8 y el arcade en pantalla, la voz de la narración, la fluidez 
 
 > Los datos de autoría y del contexto académico provienen del anteproyecto aportado por el autor, no del repositorio.
 
-**Convención de rutas.** Para abreviar, `<pkg>` equivale a `app/src/main/java/com/example/cybertura`. Las referencias de línea corresponden al estado del repositorio en la fecha de auditoría.
+**Convención de rutas.** Para abreviar, `<pkg>` equivale a `app/src/main/java/io/github/byckyka/cybertura`. Las referencias de línea corresponden al estado del repositorio en la fecha de auditoría.
 
 **Convención de estado.** ✅ implementado · 🟡 parcial / a medias · ⚪ declarado sin uso · ❌ no implementado.
 
@@ -343,7 +345,7 @@ cybertura/
         ├── main/
         │   ├── AndroidManifest.xml  # 1 Application, 1 Activity, sin permisos
         │   ├── assets/cyber_content.json   # 7 módulos / 16 retos (~28 KB)
-        │   ├── java/com/example/cybertura/
+        │   ├── java/io/github/byckyka/cybertura/
         │   │   ├── CyberturaApplication.kt # composition root (DI manual)
         │   │   ├── MainActivity.kt         # edge-to-edge + tema + NavHost
         │   │   ├── data/
@@ -766,7 +768,7 @@ La única "integración" es con el sistema de archivos interno: `assets/` (lectu
 - Kotlin idiomático con `data class`, `sealed class`, `StateFlow`, `copy()` para estado inmutable. `kotlin.code.style=official` (`gradle.properties`).
 - Comentarios y textos en español; separadores visuales (`// ───`).
 - Nombres de paquete consistentes con capas. `UserProgress` mezcla datos con lógica de presentación de RPG (rangos, nivel), aceptable pero sin separación de dominio.
-- Estilo inconsistente en importaciones: nombres totalmente calificados dentro del cuerpo (`androidx.compose.ui.graphics.ImageBitmap.imageResource(...)` en `GameWorldScreen.kt`; `com.example.cybertura.game.engine.NpcState` en `GameWorldViewModel.kt`).
+- Estilo inconsistente en importaciones: nombres totalmente calificados dentro del cuerpo (`androidx.compose.ui.graphics.ImageBitmap.imageResource(...)` en `GameWorldScreen.kt`; `io.github.byckyka.cybertura.game.engine.NpcState` en `GameWorldViewModel.kt`).
 
 ### 11.2 Deuda técnica y código muerto
 
@@ -794,7 +796,7 @@ La única "integración" es con el sistema de archivos interno: `assets/` (lectu
 |---|---|---|---|
 | Unitarias | `src/test/.../ContentAndProgressUnitTest.kt` | 4 pruebas sobre `UserProgress` (porcentaje de módulo, conteos, nivel/XP/rango, rango de `xpProgress`) y estructura sintética de `Challenge`/`Option` | Solo `UserProgress` (~1 clase de 25+) |
 | Unitarias | `src/test/.../ExampleUnitTest.kt` | Plantilla de Android Studio (345 B, contenido no revisado línea a línea) | Nula |
-| Instrumentadas | `src/androidTest/.../ExampleInstrumentedTest.kt` | Verifica `packageName == "com.example.cybertura"` | Nula |
+| Instrumentadas | `src/androidTest/.../ExampleInstrumentedTest.kt` | Verifica `packageName == "io.github.byckyka.cybertura"` | Nula |
 | UI (Compose) | — | Dependencia `ui-test-junit4` declarada, **sin ninguna prueba** | ❌ |
 
 **No probado:** `CyberRepository`, `DataStoreManager`, `JsonDataLoader`, validez del `cyber_content.json` real, `GameWorld` (colisiones, portales), `NpcRegistry.getNextQuestNpcId`, ViewModels, navegación. La prueba `challenge_validatesOptionsIntegrity` valida datos construidos en la propia prueba, no el JSON de producción. Las 4 pruebas no se ejecutaron durante esta auditoría.

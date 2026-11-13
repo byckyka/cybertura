@@ -35,7 +35,7 @@ Juego móvil educativo para Android que enseña conceptos básicos de **ciudadan
 - **Narración opcional**: un botón lee en voz alta las lecciones, los diálogos y los enunciados con la voz del propio teléfono (si tiene una en español).
 - **Audio**: música ambiente en bucle y efectos de pasos, entrada a casas, chat, acierto, error y módulo completado.
 - **Tutorial** en la primera ejecución.
-- **Modo investigador** oculto para la prueba piloto: registra cada intento de cada reto, ofrece una encuesta de percepción y exporta todo en un CSV.
+- **Modo investigador** oculto para la prueba piloto: registra cada intento de cada reto, aplica un cuestionario de conocimientos antes y después de jugar y una encuesta de percepción, y exporta todo en un CSV.
 - **Funciona 100 % sin conexión**. No tiene cuentas, no usa red y no recoge datos personales.
 
 ## Módulos educativos
@@ -124,6 +124,7 @@ flowchart LR
     START -->|ya visto| HOME[Mundo]
     TUT --> PF[Alias y personaje]
     PF --> HOME
+    PF -->|sesión de piloto abierta| KT1[Cuestionario inicial] --> HOME
     HOME -->|hablar con maestro| MD[Detalle de módulo]
     MD --> LS[Mini lección]
     LS --> GP[Minijuego]
@@ -131,7 +132,7 @@ flowchart LR
     Q --> MR[Resultado del módulo]
     MR --> HOME
     MR -->|8 maestros completados| GC[Juego completado]
-    GC -->|sesión de piloto abierta| SV[Encuesta]
+    GC -->|sesión de piloto abierta| KT2[Cuestionario final] --> SV[Encuesta]
     HOME & MD & MR --> BD[Medallas]
 ```
 
@@ -148,7 +149,7 @@ cybertura/
     └── src/
         ├── main/
         │   ├── assets/cyber_content.json
-        │   ├── java/com/example/cybertura/
+        │   ├── java/io/github/byckyka/cybertura/
         │   │   ├── CyberturaApplication.kt   # inyección manual de dependencias
         │   │   ├── MainActivity.kt
         │   │   ├── audio/        SoundManager, AmbientLoopPlayer, SeamlessLoop, Narrator
@@ -159,11 +160,11 @@ cybertura/
         │   │   ├── game/
         │   │   │   ├── engine/      GameWorld, GameState, NpcData, KeyStrength, ArcadeWaveSim, PlayerCharacters
         │   │   │   └── renderer/    WorldRenderer, SpriteRenderer, GameSprites
-        │   │   ├── research/     ResearchLogger, ResearchReport, ResearchSurvey, ForegroundClock
+        │   │   ├── research/     ResearchLogger, ResearchReport, ResearchSurvey, KnowledgeTest, ForegroundClock
         │   │   └── ui/
         │   │       ├── components/  CyberComponents, Narration, Reveal
         │   │       ├── navigation/  Screen, CyberturaNavHost
-        │   │       ├── screens/     mundo, tutorial, perfil, lección, minijuegos, resultados, medallas, encuesta
+        │   │       ├── screens/     mundo, tutorial, perfil, lección, minijuegos, resultados, medallas, cuestionario, encuesta
         │   │       ├── theme/       Color, Type, Theme
         │   │       └── viewmodel/   GameWorld, Gameplay, Badges, MinigameStates, MinigameRules
         │   └── res/
@@ -222,7 +223,7 @@ No hace falta configurar variables de entorno, claves ni servicios externos.
 .\gradlew.bat test                   # pruebas unitarias (JVM)
 ```
 
-Hay 108 pruebas unitarias, todas en la JVM (no necesitan teléfono):
+Hay 117 pruebas unitarias, todas en la JVM (no necesitan teléfono):
 
 | Archivo | Pruebas | Qué cubre |
 |---|---:|---|
@@ -230,6 +231,7 @@ Hay 108 pruebas unitarias, todas en la JVM (no necesitan teléfono):
 | `MinigameRulesTest` | 25 | Reglas de los cinco minijuegos y de la pregunta: aciertos, errores, bloqueos y final |
 | `ArcadeWaveSimTest` | 13 | Simulación de una oleada del arcade |
 | `ResearchReportTest` | 14 | Datos del piloto: tiempo sin contar el segundo plano y armado del CSV |
+| `KnowledgeTestTest` | 9 | Cuestionario de conocimientos: puntaje, «No lo sé» y filas de antes y después |
 | `ResearchSurveyTest` | 7 | Encuesta: nada marcado por defecto y lo no respondido sale vacío |
 | `ProfileAndNarrationTest` | 9 | Reglas del alias y texto que se le pasa a la voz |
 | `ProgressStoreTest` | 8 | Progreso guardado: puntos, medalla, mejor marca de estrellas y reinicio |
@@ -258,10 +260,10 @@ Herramienta oculta para la prueba piloto; los niños no la ven.
 1. En la pantalla de medallas, toca **5 veces seguidas** el título *Sala de trofeos*.
 2. Escribe el PIN **2026**.
 3. En *Nueva sesión*, escribe un **código de participante** (por ejemplo `P01`), nunca el nombre del niño, y pulsa *Iniciar sesión*. La aventura se reinicia desde el tutorial para que cada participante empiece de cero.
-4. Mientras la sesión está activa se registra cada intento de cada reto. Cuando el niño completa la aventura aparece la **encuesta de percepción** (6 preguntas con escala de caritas, ninguna marcada de antemano); si no alcanzó a terminar, ábrela con *Abrir encuesta del participante*. Al terminar, pulsa *Terminar sesión*.
+4. Tras crear su perfil, el niño responde el **cuestionario de conocimientos** (8 preguntas, una por módulo, con la opción «No lo sé»; no muestra si acertó). Mientras la sesión está activa se registra cada intento de cada reto. Cuando completa la aventura responde el mismo cuestionario otra vez y después la **encuesta de percepción** (6 preguntas con escala de caritas, ninguna marcada de antemano); si no alcanzó a terminar, abre ambos desde el panel con *Abrir cuestionario final* y *Abrir encuesta del participante*. Al terminar, pulsa *Terminar sesión*.
 5. En *Exportar resultados*, elige **Guardar en carpeta** o **Compartir** (Drive, correo…). Se genera un solo archivo, `cybertura_resultados_<fecha>.csv`, que abre directo en Excel.
 
-El CSV tiene una fila por participante y reto (dos por módulo: el minijuego y la pregunta), con estas columnas: Participante, Fecha, Módulo, Jefe, Tema, Reto, Resultado, Intentos, Tiempo, Tiempo (segundos), Aciertos, Errores, Ayudas, Estrellas y XP ganada. En la pregunta, *Errores* son las opciones equivocadas elegidas antes de acertar (0 = acertó a la primera). *Tiempo* no cuenta los ratos con la app en segundo plano. *Ayudas* solo aplica al minijuego de detective (`SPOT_THE_CLUES`). Después vienen las respuestas de la encuesta (columnas P1 a P6; vacío = no respondió) y, al final, una guía que explica cada columna.
+El CSV tiene una fila por participante y reto (dos por módulo: el minijuego y la pregunta), con estas columnas: Participante, Fecha, Módulo, Jefe, Tema, Reto, Resultado, Intentos, Tiempo, Tiempo (segundos), Aciertos, Errores, Ayudas, Estrellas y XP ganada. En la pregunta, *Errores* son las opciones equivocadas elegidas antes de acertar (0 = acertó a la primera). *Tiempo* no cuenta los ratos con la app en segundo plano. *Ayudas* solo aplica al minijuego de detective (`SPOT_THE_CLUES`). Después vienen el cuestionario de conocimientos (una fila por participante y momento, con los aciertos y cada pregunta como 1, 0, NS o vacío) y las respuestas de la encuesta (columnas P1 a P6; vacío = no respondió) y, al final, una guía que explica cada columna.
 
 *Borrar todos los datos del piloto* elimina las sesiones del teléfono, así que conviene exportarlas antes.
 
