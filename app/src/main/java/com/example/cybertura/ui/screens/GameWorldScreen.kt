@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleStartEffect
 import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.model.UserProgress
+import com.example.cybertura.game.engine.DialogAction
 import com.example.cybertura.game.engine.GameState
 import com.example.cybertura.game.engine.GameWorld
 import com.example.cybertura.game.engine.MapIds
@@ -219,11 +220,11 @@ fun GameWorldScreen(
                     PokemonDialogBox(
                         npc = npc,
                         dialogText = gameState.dialogText,
-                        isBlocked = gameState.dialogIsBlocked,
-                        onAcceptQuest = {
+                        action = gameState.dialogAction,
+                        onStartQuest = {
                             viewModel.closeDialog()
-                            // Si es un NPC de misión, navegar. Si no, solo se cerrará el diálogo
-                            if (npc.moduleId != null && !gameState.dialogIsBlocked) {
+                            // Aceptar el reto o repasarlo llevan a la misma pantalla del módulo
+                            if (npc.moduleId != null && gameState.dialogAction != DialogAction.NONE) {
                                 onNavigateToModule(npc.moduleId)
                             }
                         },
@@ -393,8 +394,8 @@ fun ActionButton(
 fun PokemonDialogBox(
     npc: NpcData,
     dialogText: String,
-    isBlocked: Boolean,
-    onAcceptQuest: () -> Unit,
+    action: DialogAction,
+    onStartQuest: () -> Unit,
     onCancel: () -> Unit
 ) {
     // Animación de máquina de escribir
@@ -470,26 +471,43 @@ fun PokemonDialogBox(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (npc.moduleId != null && !isBlocked) {
-                            TextButton(onClick = onCancel) {
-                                Text("Más tarde", color = TextSecondary, fontWeight = FontWeight.Bold)
+                        when (action) {
+                            DialogAction.ACCEPT_QUEST -> {
+                                TextButton(onClick = onCancel) {
+                                    Text("Más tarde", color = TextSecondary, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Button(
+                                    onClick = onStartQuest,
+                                    colors = ButtonDefaults.buttonColors(containerColor = NeonGold),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("¡Aceptar Reto!", color = DungeonBlack, fontWeight = FontWeight.Black)
+                                }
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = onAcceptQuest,
-                                colors = ButtonDefaults.buttonColors(containerColor = NeonGold),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text("¡Aceptar Reto!", color = DungeonBlack, fontWeight = FontWeight.Black)
+                            DialogAction.REPLAY_QUEST -> {
+                                // Maestro ya superado: se puede repasar su reto las veces que se quiera
+                                TextButton(onClick = onStartQuest) {
+                                    Text("🔁 Repasar reto", color = NeonGold, fontWeight = FontWeight.Bold)
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Button(
+                                    onClick = onCancel,
+                                    colors = ButtonDefaults.buttonColors(containerColor = NeonCyan),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Entendido", color = DungeonBlack, fontWeight = FontWeight.Black)
+                                }
                             }
-                        } else {
-                            // Es un aldeano o está bloqueado
-                            Button(
-                                onClick = onCancel,
-                                colors = ButtonDefaults.buttonColors(containerColor = NeonCyan),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text("Entendido", color = DungeonBlack, fontWeight = FontWeight.Black)
+                            DialogAction.NONE -> {
+                                // Es un aldeano o un maestro que aún no toca
+                                Button(
+                                    onClick = onCancel,
+                                    colors = ButtonDefaults.buttonColors(containerColor = NeonCyan),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Entendido", color = DungeonBlack, fontWeight = FontWeight.Black)
+                                }
                             }
                         }
                     }

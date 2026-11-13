@@ -32,9 +32,8 @@ data class GameState(
     val showDialog: Boolean = false,
     val dialogNpcId: String? = null,
     val dialogText: String = "",
-    val dialogCharIndex: Int = 0, // para animación letra-por-letra
-    val dialogFullyRevealed: Boolean = false,
-    val dialogIsBlocked: Boolean = false,
+    /** Qué botón ofrece el diálogo: aceptar el reto, repasarlo o solo cerrar. */
+    val dialogAction: DialogAction = DialogAction.NONE,
 
     // Animación y físicas del clima/partículas
     val lastFrameTimeMs: Long = 0L,
@@ -54,7 +53,6 @@ data class GameState(
         const val NPC_SPEED = 1.5f // NPCs caminan más lento
         const val NPC_INTERACT_RADIUS = 1.8f // tiles de distancia para interactuar
         const val WALK_ANIM_INTERVAL = 250L // ms entre frames de animación
-        const val DIALOG_CHAR_SPEED = 35L // ms entre cada letra del diálogo
     }
 }
 

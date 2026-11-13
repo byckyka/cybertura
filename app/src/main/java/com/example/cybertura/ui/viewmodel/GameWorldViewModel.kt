@@ -374,15 +374,8 @@ class GameWorldViewModel(
     fun interact() {
         val state = _gameState.value
 
-        // Si ya hay un diálogo mostrándose
-        if (state.showDialog) {
-            if (state.dialogFullyRevealed) {
-                // Aquí el UI debería navegar a la pantalla de la misión
-            } else {
-                // Acelerar/mostrar texto completo (implementado en UI)
-            }
-            return
-        }
+        // Con un diálogo abierto, el botón de acción no hace nada: se responde desde el diálogo
+        if (state.showDialog) return
 
         // Si hay un NPC cerca y presionamos interactuar
         if (state.nearbyNpcId != null) {
@@ -398,42 +391,15 @@ class GameWorldViewModel(
                     if (npcY > state.playerY) Direction.DOWN else Direction.UP
                 }
 
-                var finalDialog = npc.greetingDialog
-                var isBlocked = false
-
-                if (npc.questOrder != null) {
-                    val currentTargetId = state.nextQuestNpcId
-                    
-                    if (currentTargetId == null) {
-                        // Ya completó el juego entero
-                        finalDialog = npc.completedDialog
-                        isBlocked = true
-                    } else if (currentTargetId != npc.id) {
-                        val targetNpc = NpcRegistry.getNpcById(currentTargetId)
-                        // Se decide por los módulos completados y no por el número de orden:
-                        // si el orden de la misión cambia, una partida guardada puede tener
-                        // completado un maestro que ahora va después del objetivo actual.
-                        if (npc.moduleId in completedModuleIds) {
-                            // Este NPC ya fue completado
-                            finalDialog = npc.completedDialog
-                            isBlocked = true
-                        } else if (targetNpc != null) {
-                            // Este NPC aún no está listo
-                            finalDialog = "Todavía no es tu momento para mi reto. Tu siguiente destino es ${targetNpc.name}: lo encontrarás ${targetNpc.locationHint.ifBlank { "en la ciudad" }}. ¡Sigue el ❗ dorado!"
-                            isBlocked = true
-                        }
-                    }
-                }
+                val dialog = NpcRegistry.dialogFor(npc, completedModuleIds)
 
                 _gameState.update {
                     it.copy(
                         playerDirection = dir,
                         showDialog = true,
                         dialogNpcId = npc.id,
-                        dialogText = finalDialog,
-                        dialogIsBlocked = isBlocked,
-                        dialogCharIndex = 0,
-                        dialogFullyRevealed = false
+                        dialogText = dialog.text,
+                        dialogAction = dialog.action
                     )
                 }
             }

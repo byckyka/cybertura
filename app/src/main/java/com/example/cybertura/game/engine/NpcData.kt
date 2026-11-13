@@ -265,4 +265,46 @@ object NpcRegistry {
             npc.moduleId != null && !completedModuleIds.contains(npc.moduleId)
         }?.id
     }
+
+    /**
+     * Lo que dice un NPC y qué le ofrece al jugador, según los módulos que ya completó:
+     * - aldeano: solo conversa;
+     * - maestro ya superado: felicita y deja repasar su reto (sin volver a dar XP);
+     * - maestro que aún no toca: indica a dónde ir;
+     * - maestro actual: ofrece su reto.
+     */
+    fun dialogFor(npc: NpcData, completedModuleIds: Set<String>): NpcDialog {
+        val moduleId = npc.moduleId
+        if (npc.questOrder == null || moduleId == null) {
+            return NpcDialog(npc.greetingDialog, DialogAction.NONE)
+        }
+        // Se decide por los módulos completados y no por el número de orden: si el orden de la
+        // misión cambia, una partida guardada puede tener completado un maestro que ahora va
+        // después del objetivo actual.
+        if (moduleId in completedModuleIds) {
+            return NpcDialog(npc.completedDialog.ifBlank { npc.greetingDialog }, DialogAction.REPLAY_QUEST)
+        }
+        val target = getNextQuestNpcId(completedModuleIds)?.let { getNpcById(it) }
+        if (target != null && target.id != npc.id) {
+            val where = target.locationHint.ifBlank { "en la ciudad" }
+            return NpcDialog(
+                "Todavía no es tu momento para mi reto. Tu siguiente destino es ${target.name}: " +
+                    "lo encontrarás $where. ¡Sigue el ❗ dorado!",
+                DialogAction.NONE
+            )
+        }
+        return NpcDialog(npc.greetingDialog, DialogAction.ACCEPT_QUEST)
+    }
 }
+
+/** Qué puede hacer el jugador desde el diálogo con un NPC. */
+enum class DialogAction {
+    /** Solo cerrar: es un aldeano o un maestro que aún no toca. */
+    NONE,
+    /** Empezar el reto del maestro actual. */
+    ACCEPT_QUEST,
+    /** Repasar el reto de un maestro ya superado. */
+    REPLAY_QUEST
+}
+
+data class NpcDialog(val text: String, val action: DialogAction)
