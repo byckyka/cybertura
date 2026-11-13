@@ -28,7 +28,7 @@ Un módulo ya superado se puede repasar hablando otra vez con su maestro (`NpcRe
 - `ForegroundClock`: la duración de un intento solo suma el tiempo con la app en pantalla.
 - `ResearchReport`: el CSV tiene una fila por participante y reto (minijuego y pregunta). En la pregunta, «Errores» son las opciones equivocadas antes de acertar.
 - `KnowledgeTest`: cuestionario de conocimientos de 8 preguntas (una por módulo) que se responde antes y después de jugar; no muestra si la respuesta fue correcta y ofrece «No lo sé». En el CSV sale una fila por participante y momento.
-- `ResearchSurvey`: encuesta de percepción de 6 preguntas con escala de 1 a 5, sin respuesta marcada de antemano; lo no respondido se guarda como 0 y sale vacío en el CSV.
+- `ResearchSurvey`: encuesta de satisfacción de 7 ítems (parte 1 del Anexo F del documento de grado) con escala de 1 a 5, sin respuesta marcada de antemano; lo no respondido se guarda como 0 y sale vacío en el CSV.
 - Todo lo que toca los archivos del piloto corre en un solo hilo de escritura, fuera del hilo principal.
 
 ### Pruebas

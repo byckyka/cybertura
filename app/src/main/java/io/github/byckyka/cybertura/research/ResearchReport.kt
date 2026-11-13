@@ -228,7 +228,7 @@ object ResearchReport {
         if (surveys.isEmpty()) return
         val questions = ResearchSurvey.QUESTIONS
         sb.append("\r\n")
-        sb.append(ResearchCsv.line(listOf("ENCUESTA DE PERCEPCIÓN (1 = nada … 5 = muchísimo; vacío = no respondió)")))
+        sb.append(ResearchCsv.line(listOf("ENCUESTA DE SATISFACCIÓN (1 = muy en desacuerdo … 5 = muy de acuerdo; vacío = no respondió)")))
         sb.append(ResearchCsv.line(listOf("Participante", "Fecha") + questions.indices.map { "P${it + 1}" }))
         val latest = surveys.groupBy { it.sessionId }.values.map { it.last() }
         for (survey in latest) {

@@ -74,7 +74,7 @@ fun SurveyScreen(onSubmit: (answers: List<Int>) -> Unit) {
             fontWeight = FontWeight.Black
         )
         Text(
-            text = "Toca la carita que mejor diga lo que piensas. No hay respuestas buenas ni malas.",
+            text = "Toca la carita que diga qué tan de acuerdo estás con cada frase. No hay respuestas buenas ni malas.",
             color = TextSecondary,
             fontSize = 15.sp,
             lineHeight = 21.sp
@@ -112,8 +112,8 @@ fun SurveyScreen(onSubmit: (answers: List<Int>) -> Unit) {
         }
         if (missing > 0) {
             Text(
-                text = if (missing == 1) "Te falta 1 pregunta. Puedes enviarla así si no quieres responderla."
-                else "Te faltan $missing preguntas. Puedes enviar así si no quieres responderlas.",
+                text = if (missing == 1) "Te falta 1 frase. Puedes enviar así si no quieres responderla."
+                else "Te faltan $missing frases. Puedes enviar así si no quieres responderlas.",
                 color = TextMuted,
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
@@ -123,7 +123,7 @@ fun SurveyScreen(onSubmit: (answers: List<Int>) -> Unit) {
     }
 }
 
-/** Cinco caritas, de "nada" a "muchísimo". Tocar la elegida otra vez la desmarca. */
+/** Cinco caritas, de "muy en desacuerdo" a "muy de acuerdo". Tocar la elegida otra vez la desmarca. */
 @Composable
 private fun FaceScale(selected: Int, onSelect: (Int) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -154,8 +154,8 @@ private fun FaceScale(selected: Int, onSelect: (Int) -> Unit) {
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Nada", color = TextMuted, fontSize = 12.sp)
-            Text("Muchísimo", color = TextMuted, fontSize = 12.sp)
+            Text(ResearchSurvey.LOW_LABEL, color = TextMuted, fontSize = 12.sp)
+            Text(ResearchSurvey.HIGH_LABEL, color = TextMuted, fontSize = 12.sp)
         }
     }
 }
