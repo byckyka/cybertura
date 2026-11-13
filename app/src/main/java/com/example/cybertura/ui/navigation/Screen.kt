@@ -11,6 +11,11 @@ sealed class Screen(val route: String) {
         fun createRoute(moduleId: String) = "module/$moduleId"
     }
 
+    /** Mini lección del módulo; al terminarla se abre el reto [challengeId]. */
+    object Lesson : Screen("lesson/{moduleId}/{challengeId}") {
+        fun createRoute(moduleId: String, challengeId: String) = "lesson/$moduleId/$challengeId"
+    }
+
     object Gameplay : Screen("gameplay/{moduleId}/{challengeId}") {
         fun createRoute(moduleId: String, challengeId: String) = "gameplay/$moduleId/$challengeId"
     }

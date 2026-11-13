@@ -71,9 +71,56 @@ class ContentValidationTest {
                 Challenge.TYPE_CHAT_STORY -> !c.chat?.steps.isNullOrEmpty()
                 Challenge.TYPE_FORGE_KEY -> !c.forge?.rounds.isNullOrEmpty()
                 Challenge.TYPE_TAP_DEFENSE -> !c.arcade?.waves.isNullOrEmpty() && !c.arcade?.items.isNullOrEmpty()
+                Challenge.TYPE_MULTIPLE_CHOICE -> !c.options.isNullOrEmpty()
                 else -> false
             }
         }.map { "${it.id}: faltan datos para ${it.type}" }
+        assertNoProblems(problems)
+    }
+
+    @Test
+    fun cada_modulo_tiene_un_minijuego_y_luego_su_pregunta_de_situacion_real() {
+        val problems = game.modules.flatMap { m ->
+            buildList {
+                if (m.challenges.size != 2) add("${m.id}: debe tener 2 retos y tiene ${m.challenges.size}")
+                if (m.challenges.firstOrNull()?.isQuestion == true) add("${m.id}: el primer reto debe ser el minijuego")
+                if (m.challenges.lastOrNull()?.isQuestion == false) add("${m.id}: el último reto debe ser la pregunta")
+            }
+        }
+        assertNoProblems(problems)
+    }
+
+    @Test
+    fun cada_pregunta_tiene_una_sola_respuesta_correcta_y_explica_todas_las_opciones() {
+        val problems = ofType(Challenge.TYPE_MULTIPLE_CHOICE).flatMap { c ->
+            val options = c.options.orEmpty()
+            buildList {
+                if (options.size < 3) add("${c.id}: necesita al menos 3 opciones")
+                if (options.count { it.isCorrect } != 1) add("${c.id}: debe tener exactamente una opción correcta")
+                if (c.storyContext.isBlank()) add("${c.id}: sin situación")
+                if (c.question.isBlank()) add("${c.id}: sin pregunta")
+                duplicates(options.map { it.id }).forEach { add("${c.id}: opción repetida $it") }
+                options.filter { it.text.isBlank() }.forEach { add("${c.id}/${it.id}: opción sin texto") }
+                options.filter { it.feedback.isBlank() }.forEach { add("${c.id}/${it.id}: sin explicación") }
+            }
+        }
+        assertNoProblems(problems)
+    }
+
+    @Test
+    fun cada_modulo_tiene_una_mini_leccion_corta() {
+        val problems = game.modules.flatMap { m ->
+            val cards = m.lesson?.cards.orEmpty()
+            buildList {
+                if (cards.size !in 2..4) add("${m.id}: la lección debe tener de 2 a 4 tarjetas y tiene ${cards.size}")
+                cards.forEachIndexed { i, card ->
+                    if (card.title.isBlank()) add("${m.id} tarjeta ${i + 1}: sin título")
+                    if (card.text.isBlank()) add("${m.id} tarjeta ${i + 1}: sin texto")
+                    // Una tarjeta es una idea: si no cabe en la pantalla, el niño no la lee
+                    if (card.text.length > 240) add("${m.id} tarjeta ${i + 1}: texto demasiado largo (${card.text.length})")
+                }
+            }
+        }
         assertNoProblems(problems)
     }
 

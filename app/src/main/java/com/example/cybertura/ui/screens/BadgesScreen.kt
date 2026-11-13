@@ -121,7 +121,7 @@ fun BadgesScreen(
                                 letterSpacing = 1.5.sp
                             )
                             Text(
-                                text = "${uiState.unlockedCount} de ${uiState.badges.size} Desbloqueados",
+                                text = "${uiState.unlockedCount} de ${uiState.badges.size} Desbloqueados · ★ ${uiState.totalStars} de ${uiState.maxStars}",
                                 fontSize = 12.sp,
                                 color = TextSecondary,
                                 fontWeight = FontWeight.Bold
@@ -493,6 +493,12 @@ private fun TrophyItem(badge: BadgeItem) {
                         maxLines = 2
                     )
 
+                    // Mejor marca del minijuego: repasarlo puede subirla
+                    if (badge.stars > 0) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        StarRow(stars = badge.stars)
+                    }
+
                     // Rarity tag
                     if (isUnlocked) {
                         Spacer(modifier = Modifier.height(6.dp))
@@ -512,6 +518,20 @@ private fun TrophyItem(badge: BadgeItem) {
                     }
                 }
             }
+        }
+    }
+}
+
+/** Estrellas ganadas (doradas) sobre el máximo de 3. */
+@Composable
+fun StarRow(stars: Int, modifier: Modifier = Modifier, max: Int = 3) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        repeat(max) { i ->
+            Text(
+                text = if (i < stars) "★" else "☆",
+                fontSize = 16.sp,
+                color = if (i < stars) NeonGold else TextMuted
+            )
         }
     }
 }

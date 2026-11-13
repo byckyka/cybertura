@@ -99,7 +99,7 @@ class ResearchLogger(
     // ── Intentos de minijuego ────────────────────────────────────────────────
 
     /** Empieza a registrar un intento; devuelve null si no hay sesión activa. */
-    fun startAttempt(moduleId: String, moduleTitle: String, minigameType: String): Attempt? {
+    fun startAttempt(moduleId: String, moduleTitle: String, challengeId: String, minigameType: String): Attempt? {
         val sessionId = prefs.getString(K_SESSION, null) ?: return null
         return Attempt(
             sessionId = sessionId,
@@ -107,6 +107,7 @@ class ResearchLogger(
             sessionStartMs = prefs.getLong(K_START, 0L),
             moduleId = moduleId,
             moduleTitle = moduleTitle,
+            challengeId = challengeId,
             minigameType = minigameType,
             startActiveMs = clock.activeMs()
         )
@@ -118,6 +119,7 @@ class ResearchLogger(
         private val sessionStartMs: Long,
         private val moduleId: String,
         private val moduleTitle: String,
+        private val challengeId: String,
         private val minigameType: String,
         private val startActiveMs: Long
     ) {
@@ -153,7 +155,8 @@ class ResearchLogger(
                 errors = errors,
                 hints = hints,
                 stars = stars,
-                xp = xpGained
+                xp = xpGained,
+                challengeId = challengeId
             ).toCsvLine()
             io.execute {
                 runCatching { attemptsFile.appendText(line, Charsets.UTF_8) }

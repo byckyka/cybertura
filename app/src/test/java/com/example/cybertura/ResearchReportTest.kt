@@ -28,11 +28,13 @@ class ResearchReportTest {
         hints: Int = 0,
         stars: Int = 3,
         xp: Int = 100,
-        title: String = "Módulo de prueba"
+        title: String = "Módulo de prueba",
+        challenge: String = "reto_1"
     ) = AttemptRow(
         sessionId = session, participant = session.substringBefore('-'), sessionStartMs = 1_800_000_000_000L,
         moduleId = module, moduleTitle = title, minigameType = type, durationMs = seconds * 1000L,
-        completed = completed, hits = hits, errors = errors, hints = hints, stars = stars, xp = xp
+        completed = completed, hits = hits, errors = errors, hints = hints, stars = stars, xp = xp,
+        challengeId = challenge
     )
 
     /** Filas de datos del informe (sin encabezado ni guía), ya separadas en columnas. */
@@ -150,6 +152,29 @@ class ResearchReportTest {
             )
         )
         assertEquals(listOf("P01", "P01", "P02"), rows.map { it.col("Participante") })
+    }
+
+    @Test
+    fun el_minijuego_y_la_pregunta_de_un_modulo_van_en_filas_separadas() {
+        val rows = dataRows(
+            listOf(
+                attempt(challenge = "minijuego", type = Challenge.TYPE_CHAT_STORY, stars = 2),
+                attempt(challenge = "pregunta", type = Challenge.TYPE_MULTIPLE_CHOICE, errors = 1, stars = 0, xp = 50)
+            )
+        )
+        assertEquals(2, rows.size)
+        assertEquals(listOf("Chat de grupo", "Situación real: pregunta"), rows.map { it.col("Reto") })
+        // La pregunta mide si acertó a la primera; no da estrellas
+        assertEquals("1", rows[1].col("Errores"))
+        assertEquals("no aplica", rows[1].col("Estrellas"))
+        assertEquals("2", rows[0].col("Estrellas"))
+    }
+
+    @Test
+    fun lee_intentos_guardados_antes_de_que_hubiera_dos_retos() {
+        val old = attempt(challenge = "").toCsvLine().trimEnd('\r', '\n').removeSuffix(";")
+        assertEquals(13, ResearchCsv.parseLine(old).size)
+        assertEquals(attempt(challenge = ""), AttemptRow.parse(old))
     }
 
     @Test

@@ -17,7 +17,23 @@ data class CyberModule(
     @SerializedName("badgeId") val badgeId: String = "",
     @SerializedName("badgeTitle") val badgeTitle: String = "",
     @SerializedName("badgeDescription") val badgeDescription: String = "",
+    /** Mini lección que se lee antes del primer reto. Nullable: Gson no usa los valores por defecto. */
+    @SerializedName("lesson") val lesson: Lesson? = null,
     @SerializedName("challenges") val challenges: List<Challenge> = emptyList()
+)
+
+/**
+ * Mini lección del módulo: unas pocas tarjetas cortas con la idea clave, para que el niño
+ * llegue al minijuego sabiendo qué buscar en vez de adivinar.
+ */
+data class Lesson(
+    @SerializedName("cards") val cards: List<LessonCard>? = null
+)
+
+data class LessonCard(
+    @SerializedName("emoji") val emoji: String? = null,
+    @SerializedName("title") val title: String,
+    @SerializedName("text") val text: String
 )
 
 data class Challenge(
@@ -28,7 +44,8 @@ data class Challenge(
     @SerializedName("question") val question: String,
     @SerializedName("points") val points: Int = 100,
     @SerializedName("educationalTip") val educationalTip: String = "",
-    @SerializedName("options") val options: List<Option> = emptyList(),
+    /** Solo para type = MULTIPLE_CHOICE. Nullable: los minijuegos no traen este campo en el JSON. */
+    @SerializedName("options") val options: List<Option>? = null,
     // ── Solo para type = SWIPE_SORT (minijuego de deslizar) ──
     // Nullable: Gson no usa los valores por defecto de Kotlin, y los retos de opción
     // múltiple no traen estos campos en el JSON.
@@ -47,7 +64,11 @@ data class Challenge(
     // ── Solo para type = TAP_DEFENSE (arcade "Defiende el bosque") ──
     @SerializedName("arcade") val arcade: ArcadeChallenge? = null
 ) {
+    /** Pregunta de "situación real": se responde eligiendo una opción y no da estrellas. */
+    val isQuestion: Boolean get() = type == TYPE_MULTIPLE_CHOICE
+
     companion object {
+        const val TYPE_MULTIPLE_CHOICE = "MULTIPLE_CHOICE"
         const val TYPE_SWIPE_SORT = "SWIPE_SORT"
         const val TYPE_SPOT_THE_CLUES = "SPOT_THE_CLUES"
         const val TYPE_CHAT_STORY = "CHAT_STORY"

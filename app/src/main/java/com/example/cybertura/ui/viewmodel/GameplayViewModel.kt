@@ -34,6 +34,11 @@ data class GameplayUiState(
     val challengeIndex: Int = 0,
     val totalChallenges: Int = 0,
     val selectedOption: Option? = null,
+    /** Opciones de la pregunta, ya barajadas para que la correcta no esté siempre en el mismo lugar. */
+    val options: List<Option> = emptyList(),
+    /** Opciones que ya se eligieron y no eran la correcta: quedan tachadas. */
+    val discardedOptionIds: Set<String> = emptySet(),
+    val wrongAnswers: Int = 0,
     val showFeedback: Boolean = false,
     val isCorrect: Boolean = false,
     val feedbackText: String = "",
@@ -276,6 +281,7 @@ class GameplayViewModel(
                     totalChallenges = module.challenges.size,
                     nextChallengeId = nextChallenge?.id,
                     isModuleFinished = isLast,
+                    options = challenge.options.orEmpty().shuffled(),
                     swipe = challenge.cards
                         ?.takeIf { challenge.type == Challenge.TYPE_SWIPE_SORT && it.isNotEmpty() }
                         ?.let { cards -> SwipeGameState(queue = cards.shuffled(), total = cards.size) },
@@ -296,7 +302,7 @@ class GameplayViewModel(
                         ?.let { ArcadeGameState(config = it) }
                 )
             }
-            attempt = researchLogger?.startAttempt(moduleId, module.title, challenge.type)
+            attempt = researchLogger?.startAttempt(moduleId, module.title, challenge.id, challenge.type)
             if (_uiState.value.chat != null) {
                 viewModelScope.launch { playChatStep(0) }
             }
@@ -771,13 +777,22 @@ class GameplayViewModel(
             val firstTime = challenge.id !in repository.userProgress.first().completedChallengeIds
             attempt?.finish(errors, hints, stars, xpGained = if (firstTime) challenge.points else 0)
             attempt = null
-            repository.completeChallenge(moduleId, challenge.id, challenge.points)
+            // Las estrellas se guardan como mejor marca: repasar un reto puede subirlas
+            repository.completeChallenge(moduleId, challenge.id, challenge.points, stars)
             _uiState.update { it.copy(isChallengeCompleted = true) }
         }
     }
 
+    // ── Pregunta de situación real ───────────────────────────────────────────
+
+    /**
+     * El niño eligió una opción. Si no es la correcta se explica por qué, queda tachada y
+     * puede volver a elegir: equivocarse no quita puntos, pero sí queda en el registro del piloto.
+     */
     fun selectOption(option: Option) {
-        val challenge = _uiState.value.challenge ?: return
+        val state = _uiState.value
+        val challenge = state.challenge ?: return
+        if (state.showFeedback || state.isChallengeCompleted || option.id in state.discardedOptionIds) return
         val isCorrect = option.isCorrect
         attempt?.answer(isCorrect)
 
@@ -787,12 +802,19 @@ class GameplayViewModel(
                 isCorrect = isCorrect,
                 feedbackText = option.feedback,
                 educationalTip = challenge.educationalTip,
-                showFeedback = true
+                showFeedback = true,
+                wrongAnswers = if (isCorrect) it.wrongAnswers else it.wrongAnswers + 1,
+                discardedOptionIds = if (isCorrect) it.discardedOptionIds else it.discardedOptionIds + option.id
             )
         }
 
         if (isCorrect) {
+            val errors = _uiState.value.wrongAnswers
             viewModelScope.launch {
+                // La XP solo se gana la primera vez que se completa el reto
+                val firstTime = challenge.id !in repository.userProgress.first().completedChallengeIds
+                attempt?.finish(errors, hints = 0, stars = 0, xpGained = if (firstTime) challenge.points else 0)
+                attempt = null
                 repository.completeChallenge(moduleId, challenge.id, challenge.points)
                 _uiState.update { it.copy(isChallengeCompleted = true) }
             }
@@ -808,7 +830,7 @@ class GameplayViewModel(
         val state = _uiState.value
         attempt?.abandon(
             errors = state.swipe?.mistakes ?: state.spot?.misses ?: state.chat?.mistakes
-                ?: state.forge?.mistakes ?: state.arcade?.shieldsLostTotal ?: 0,
+                ?: state.forge?.mistakes ?: state.arcade?.shieldsLostTotal ?: state.wrongAnswers,
             hints = state.spot?.hintsUsed ?: 0
         )
         attempt = null

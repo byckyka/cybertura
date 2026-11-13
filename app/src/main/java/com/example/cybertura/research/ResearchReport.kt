@@ -21,13 +21,16 @@ data class AttemptRow(
     val errors: Int,
     val hints: Int,
     val stars: Int,
-    val xp: Int
+    val xp: Int,
+    /** Reto del módulo (minijuego o pregunta). Vacío en datos guardados antes de que hubiera dos retos. */
+    val challengeId: String = ""
 ) {
     fun toCsvLine(): String = ResearchCsv.line(
         listOf(
             sessionId, participant, sessionStartMs.toString(), moduleId, moduleTitle, minigameType,
             durationMs.toString(), if (completed) "1" else "0",
-            hits.toString(), errors.toString(), hints.toString(), stars.toString(), xp.toString()
+            hits.toString(), errors.toString(), hints.toString(), stars.toString(), xp.toString(),
+            challengeId
         )
     )
 
@@ -39,7 +42,8 @@ data class AttemptRow(
             return runCatching {
                 AttemptRow(
                     c[0], c[1], c[2].toLong(), c[3], c[4], c[5], c[6].toLong(), c[7] == "1",
-                    c[8].toInt(), c[9].toInt(), c[10].toInt(), c[11].toInt(), c[12].toInt()
+                    c[8].toInt(), c[9].toInt(), c[10].toInt(), c[11].toInt(), c[12].toInt(),
+                    c.getOrElse(13) { "" }
                 )
             }.getOrNull()
         }
@@ -86,18 +90,20 @@ object ResearchReport {
     private const val BOM = "﻿"
 
     val HEADER = listOf(
-        "Participante", "Fecha", "Módulo", "Jefe", "Tema", "Minijuego", "Resultado", "Intentos",
+        "Participante", "Fecha", "Módulo", "Jefe", "Tema", "Reto", "Resultado", "Intentos",
         "Tiempo", "Tiempo (segundos)", "Aciertos", "Errores", "Ayudas", "Estrellas", "XP ganada"
     )
 
     private val GUIDE = listOf(
         "CÓMO LEER ESTE ARCHIVO",
-        "Cada fila es un participante en un módulo. Los módulos aparecen en el orden en que los jugó.",
+        "Cada fila es un participante en un reto. Cada módulo tiene dos retos: primero su minijuego y después",
+        "  una pregunta de situación real, que mide si aplica lo aprendido. Las filas van en el orden en que jugó.",
         "Participante: código anónimo que puso el investigador (nunca el nombre del niño).",
         "Fecha: día en que se abrió la sesión de ese participante.",
         "Módulo: número del módulo en la aventura (1 a 8). Jefe: personaje que da el reto. Tema: título del módulo.",
-        "Resultado: Completado si terminó el minijuego; Sin terminar si salió antes de acabarlo.",
-        "Intentos: veces que entró al minijuego hasta completarlo (si lo repitió después de completarlo no se cuenta).",
+        "Reto: el minijuego del módulo o su pregunta de situación real.",
+        "Resultado: Completado si terminó el reto; Sin terminar si salió antes de acabarlo.",
+        "Intentos: veces que entró al reto hasta completarlo (si lo repitió después de completarlo no se cuenta).",
         "Tiempo: suma de lo que duraron esos intentos, sin contar los ratos con la app en segundo plano o la pantalla apagada.",
         "  Tiempo (segundos) es el mismo dato en número para sacar promedios.",
         "Aciertos: decisiones correctas en todos esos intentos.",
@@ -105,14 +111,15 @@ object ResearchReport {
         "  Deslizar: carta clasificada al revés. Detective: toque fuera de una pista.",
         "  Chat de grupo: respuesta que no ayuda. Forja de llaves: llave débil o con trampa y respuestas incorrectas.",
         "  Defiende el bosque: escudo perdido (tocar algo seguro o dejar pasar un virus).",
+        "  Situación real: opción incorrecta elegida antes de acertar (0 errores = acertó a la primera).",
         "Ayudas: veces que tocó el botón 💡 Ayuda. Solo existe en el minijuego Detective (módulos 4 y 8);",
         "  muestra una pista sobre lo que falta encontrar y cada ayuda resta como 2 errores en las estrellas. En los demás dice no aplica.",
-        "Estrellas: de 1 a 3, las del intento en que lo completó.",
-        "XP ganada: experiencia obtenida en ese módulo (solo se gana la primera vez que se completa)."
+        "Estrellas: de 1 a 3, las del intento en que completó el minijuego. La pregunta no da estrellas (no aplica).",
+        "XP ganada: experiencia obtenida en ese reto (solo se gana la primera vez que se completa)."
     )
 
     /**
-     * Una fila por participante y módulo. Cuenta los intentos hasta el primero que lo completó
+     * Una fila por participante y reto. Cuenta los intentos hasta el primero que lo completó
      * (si después lo repitió, esas repeticiones no se suman).
      */
     fun build(rows: List<AttemptRow>): String {
@@ -121,7 +128,8 @@ object ResearchReport {
         val sb = StringBuilder(BOM)
         sb.append(ResearchCsv.line(HEADER))
 
-        val groups = rows.groupBy { it.sessionId to it.moduleId } // respeta el orden de juego
+        // groupBy respeta el orden de juego
+        val groups = rows.groupBy { Triple(it.sessionId, it.moduleId, it.challengeId) }
         for ((_, all) in groups) {
             val firstWin = all.indexOfFirst { it.completed }
             val attempts = if (firstWin >= 0) all.subList(0, firstWin + 1) else all
@@ -129,6 +137,7 @@ object ResearchReport {
             val npc = NpcRegistry.npcs.firstOrNull { it.moduleId == first.moduleId }
             val seconds = attempts.sumOf { it.durationMs } / 1000
             val hasHelpButton = first.minigameType == Challenge.TYPE_SPOT_THE_CLUES
+            val givesStars = first.minigameType != Challenge.TYPE_MULTIPLE_CHOICE
             sb.append(
                 ResearchCsv.line(
                     listOf(
@@ -145,7 +154,11 @@ object ResearchReport {
                         attempts.sumOf { it.hits }.toString(),
                         attempts.sumOf { it.errors }.toString(),
                         if (hasHelpButton) attempts.sumOf { it.hints }.toString() else "no aplica",
-                        if (firstWin >= 0) attempts.last().stars.toString() else "",
+                        when {
+                            !givesStars -> "no aplica"
+                            firstWin >= 0 -> attempts.last().stars.toString()
+                            else -> ""
+                        },
                         attempts.sumOf { it.xp }.toString()
                     )
                 )
@@ -163,7 +176,7 @@ object ResearchReport {
         Challenge.TYPE_CHAT_STORY -> "Chat de grupo"
         Challenge.TYPE_FORGE_KEY -> "Forja de llaves"
         Challenge.TYPE_TAP_DEFENSE -> "Defiende el bosque"
-        else -> "Preguntas"
+        else -> "Situación real: pregunta"
     }
 
     private fun readableTime(seconds: Long): String {

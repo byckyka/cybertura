@@ -36,16 +36,22 @@ class CyberRepository(
         return getModuleById(moduleId)?.challenges?.firstOrNull { it.id == challengeId }
     }
 
-    suspend fun completeChallenge(moduleId: String, challengeId: String, points: Int) {
+    /** @param stars estrellas del intento (1 a 3); null si el reto no da estrellas. */
+    suspend fun completeChallenge(moduleId: String, challengeId: String, points: Int, stars: Int? = null) {
         val module = getModuleById(moduleId) ?: return
         dataStoreManager.recordChallengeSuccess(
             challengeId = challengeId,
             points = points,
             moduleId = moduleId,
             moduleChallengeIds = module.challenges.map { it.id }.toSet(),
-            badgeId = module.badgeId
+            badgeId = module.badgeId,
+            stars = stars
         )
     }
+
+    /** Alias y personaje elegidos al terminar el tutorial. */
+    suspend fun setAgentProfile(name: String, character: String) =
+        dataStoreManager.setAgentProfile(name, character)
 
     suspend fun resetProgress() {
         dataStoreManager.resetAllProgress()

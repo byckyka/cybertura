@@ -66,7 +66,7 @@ class ContentAndProgressUnitTest {
             options = options
         )
 
-        val correctCount = challenge.options.count { it.isCorrect }
+        val correctCount = challenge.options.orEmpty().count { it.isCorrect }
         assertEquals(1, correctCount)
         assertTrue(challenge.educationalTip.isNotBlank())
     }

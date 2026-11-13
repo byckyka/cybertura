@@ -116,10 +116,45 @@ fun CyberturaNavHost(
                     onBackClick = { navController.popBackStack() },
                     onBadgesClick = { navController.navigate(Screen.Badges.route) },
                     onChallengeClick = { challengeId ->
-                        navController.navigate(Screen.Gameplay.createRoute(moduleId, challengeId))
+                        // El primer reto del módulo (su minijuego) va precedido de la mini lección
+                        val isFirst = module.challenges.firstOrNull()?.id == challengeId
+                        val hasLesson = !module.lesson?.cards.isNullOrEmpty()
+                        navController.navigate(
+                            if (isFirst && hasLesson) {
+                                Screen.Lesson.createRoute(moduleId, challengeId)
+                            } else {
+                                Screen.Gameplay.createRoute(moduleId, challengeId)
+                            }
+                        )
                     }
                 )
             }
+        }
+
+        // ── Mini lección antes del minijuego ──────────────────────────────────
+        composable(
+            route = Screen.Lesson.route,
+            arguments = listOf(
+                navArgument("moduleId") { type = NavType.StringType },
+                navArgument("challengeId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val moduleId = backStackEntry.arguments?.getString("moduleId") ?: return@composable
+            val challengeId = backStackEntry.arguments?.getString("challengeId") ?: return@composable
+            val module = repository.getModuleById(moduleId) ?: return@composable
+            val userProgress by repository.userProgress.collectAsState(initial = UserProgress())
+
+            LessonScreen(
+                module = module,
+                canSkip = userProgress.isChallengeCompleted(challengeId),
+                onStartChallenge = {
+                    // La lección sale de la pila: "atrás" desde el reto vuelve al módulo
+                    navController.navigate(Screen.Gameplay.createRoute(moduleId, challengeId)) {
+                        popUpTo(Screen.Lesson.route) { inclusive = true }
+                    }
+                },
+                onBackClick = { navController.popBackStack() }
+            )
         }
 
         // ── Pantalla de Juego / Reto Interactivo ──────────────────────────────

@@ -26,13 +26,18 @@ data class BadgeItem(
     val description: String,
     val moduleTitle: String,
     val accentColor: String,
-    val isUnlocked: Boolean
+    val isUnlocked: Boolean,
+    /** Mejor marca del minijuego del módulo (0 a 3). */
+    val stars: Int = 0
 )
 
 data class BadgesUiState(
     val badges: List<BadgeItem> = emptyList(),
     val totalScore: Int = 0,
-    val unlockedCount: Int = 0
+    val unlockedCount: Int = 0,
+    /** Estrellas reunidas entre todos los módulos y el máximo posible. */
+    val totalStars: Int = 0,
+    val maxStars: Int = 0
 )
 
 class BadgesViewModel(
@@ -51,13 +56,16 @@ class BadgesViewModel(
                     description = module.badgeDescription,
                     moduleTitle = module.title,
                     accentColor = module.accentColor,
-                    isUnlocked = progress.unlockedBadgeIds.contains(module.badgeId)
+                    isUnlocked = progress.unlockedBadgeIds.contains(module.badgeId),
+                    stars = progress.starsFor(module)
                 )
             }
             BadgesUiState(
                 badges = badgeItems,
                 totalScore = progress.totalScore,
-                unlockedCount = progress.unlockedBadgeIds.size
+                unlockedCount = progress.unlockedBadgeIds.size,
+                totalStars = progress.totalStars(moduleList),
+                maxStars = moduleList.size * UserProgress.MAX_STARS
             )
         }.stateIn(
             scope = viewModelScope,

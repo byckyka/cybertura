@@ -25,6 +25,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cybertura.audio.SoundManager
@@ -378,18 +379,14 @@ fun GameplayScreen(
                             )
                         }
 
-                        challenge.options.forEachIndexed { index, option ->
-                            val optionLabel = when (index) {
-                                0 -> "A"
-                                1 -> "B"
-                                2 -> "C"
-                                else -> "${index + 1}"
-                            }
-
+                        // El orden viene barajado del ViewModel; las ya descartadas quedan tachadas
+                        uiState.options.forEachIndexed { index, option ->
+                            val discarded = option.id in uiState.discardedOptionIds
                             BattleOptionCard(
-                                label = optionLabel,
+                                label = if (discarded) "✗" else ('A' + index).toString(),
                                 text = option.text,
                                 accentColor = accent,
+                                discarded = discarded,
                                 onClick = { onOptionSelected(option) }
                             )
                         }
@@ -413,7 +410,7 @@ fun GameplayScreen(
         FeedbackModal(
             isCorrect = uiState.isCorrect,
             title = uiState.resultTitle
-                ?: if (uiState.isCorrect) "¡Golpe Crítico de Sabiduría!" else "¡El Escudo Resistió!",
+                ?: if (uiState.isCorrect) "¡Golpe Crítico de Sabiduría!" else "¡Casi! Piénsalo otra vez",
             feedbackText = uiState.feedbackText,
             educationalTip = uiState.educationalTip,
             pointsAwarded = uiState.challenge?.points ?: 100,
@@ -436,8 +433,11 @@ private fun BattleOptionCard(
     label: String,
     text: String,
     accentColor: Color,
+    discarded: Boolean = false,
     onClick: () -> Unit
 ) {
+    // Una opción ya descartada se apaga: sigue visible para recordar por qué no era
+    val tint = if (discarded) TextMuted else accentColor
     val infiniteTransition = rememberInfiniteTransition(label = "optionHover")
     val borderAlpha by infiniteTransition.animateFloat(
         initialValue = 0.15f,
@@ -451,20 +451,21 @@ private fun BattleOptionCard(
 
     Surface(
         onClick = onClick,
+        enabled = !discarded,
         shape = RoundedCornerShape(16.dp),
-        color = DungeonCard,
+        color = if (discarded) DungeonBlack.copy(alpha = 0.4f) else DungeonCard,
         modifier = Modifier
             .fillMaxWidth()
             .border(
                 1.dp,
-                accentColor.copy(alpha = borderAlpha),
+                tint.copy(alpha = borderAlpha),
                 RoundedCornerShape(16.dp)
             )
     ) {
         Box(
             modifier = Modifier.background(
                 Brush.horizontalGradient(
-                    listOf(accentColor.copy(alpha = 0.03f), Color.Transparent)
+                    listOf(tint.copy(alpha = 0.03f), Color.Transparent)
                 )
             )
         ) {
@@ -483,14 +484,14 @@ private fun BattleOptionCard(
                         .background(
                             Brush.radialGradient(
                                 listOf(
-                                    accentColor.copy(alpha = 0.25f),
+                                    tint.copy(alpha = 0.25f),
                                     DungeonBlack
                                 )
                             )
                         )
                         .border(
                             1.5.dp,
-                            accentColor.copy(alpha = 0.5f),
+                            tint.copy(alpha = 0.5f),
                             RoundedCornerShape(10.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -499,7 +500,7 @@ private fun BattleOptionCard(
                         text = label,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Black,
-                        color = accentColor
+                        color = tint
                     )
                 }
 
@@ -507,7 +508,8 @@ private fun BattleOptionCard(
                     text = text,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
+                    color = if (discarded) TextMuted else TextPrimary,
+                    textDecoration = if (discarded) TextDecoration.LineThrough else null,
                     lineHeight = 20.sp,
                     modifier = Modifier.weight(1f)
                 )

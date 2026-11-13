@@ -183,6 +183,7 @@ fun ModuleDetailScreen(
                         challenge = challenge,
                         isCompleted = isCompleted,
                         isNext = isNext,
+                        stars = userProgress.starsFor(challenge.id),
                         accentColor = accent,
                         onClick = { onChallengeClick(challenge.id) }
                     )
@@ -365,6 +366,7 @@ private fun QuestLogItem(
     challenge: Challenge,
     isCompleted: Boolean,
     isNext: Boolean,
+    stars: Int,
     accentColor: Color,
     onClick: () -> Unit
 ) {
@@ -477,6 +479,7 @@ private fun QuestLogItem(
                             fontWeight = FontWeight.Bold,
                             color = if (isCompleted) NeonGold else TextMuted
                         )
+                        if (stars > 0) StarRow(stars = stars)
                         if (isNext) {
                             Surface(
                                 color = accentColor.copy(alpha = 0.2f),
