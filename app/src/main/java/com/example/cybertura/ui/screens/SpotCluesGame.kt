@@ -319,7 +319,7 @@ private fun FoundCluesList(game: SpotGameState) {
             Text(
                 text = "📒 LIBRETA DEL DETECTIVE",
                 color = FoundColor,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.5.sp
             )

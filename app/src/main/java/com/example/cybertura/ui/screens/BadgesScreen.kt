@@ -122,7 +122,7 @@ fun BadgesScreen(
                             )
                             Text(
                                 text = "${uiState.unlockedCount} de ${uiState.badges.size} Desbloqueados",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = TextSecondary,
                                 fontWeight = FontWeight.Bold
                             )
@@ -221,7 +221,7 @@ fun BadgesScreen(
                                     )
                                     Text(
                                         text = "INVENTARIO DE LOGROS",
-                                        fontSize = 10.sp,
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Black,
                                         color = NeonGold,
                                         letterSpacing = 1.5.sp
@@ -254,7 +254,7 @@ fun BadgesScreen(
                                             )
                                             Text(
                                                 text = "XP Total",
-                                                fontSize = 10.sp,
+                                                fontSize = 12.sp,
                                                 color = TextMuted,
                                                 fontWeight = FontWeight.Bold
                                             )
@@ -268,7 +268,7 @@ fun BadgesScreen(
                                             )
                                             Text(
                                                 text = "Trofeos",
-                                                fontSize = 10.sp,
+                                                fontSize = 12.sp,
                                                 color = TextMuted,
                                                 fontWeight = FontWeight.Bold
                                             )
@@ -466,7 +466,7 @@ private fun TrophyItem(badge: BadgeItem) {
                     // Module origin
                     Text(
                         text = badge.moduleTitle.uppercase(),
-                        fontSize = 9.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Black,
                         color = if (isUnlocked) NeonCyan else TextMuted,
                         letterSpacing = 1.sp
@@ -503,7 +503,7 @@ private fun TrophyItem(badge: BadgeItem) {
                             Text(
                                 text = "★ LEGENDARIO",
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                fontSize = 8.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Black,
                                 color = NeonGold,
                                 letterSpacing = 1.sp

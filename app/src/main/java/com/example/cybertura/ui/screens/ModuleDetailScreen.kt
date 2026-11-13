@@ -247,7 +247,7 @@ private fun DungeonHeader(
                                     Text(
                                         text = "✅ MISIÓN COMPLETADA",
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                        fontSize = 9.sp,
+                                        fontSize = 11.sp,
                                         fontWeight = FontWeight.Black,
                                         color = NeonGold,
                                         letterSpacing = 1.sp
@@ -293,13 +293,13 @@ private fun DungeonHeader(
                     ) {
                         Text(
                             text = "$completedCount / ${module.challenges.size} retos superados",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextMuted
                         )
                         Text(
                             text = "+${module.challenges.sumOf { it.points }} XP posibles",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = NeonGold
                         )
@@ -332,7 +332,7 @@ private fun DungeonHeader(
                             Column {
                                 Text(
                                     text = "RECOMPENSA DE MISIÓN",
-                                    fontSize = 9.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
                                     color = NeonGold,
                                     letterSpacing = 1.sp
@@ -345,7 +345,7 @@ private fun DungeonHeader(
                                 )
                                 Text(
                                     text = module.badgeDescription,
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = TextMuted,
                                     lineHeight = 15.sp,
                                     maxLines = 2
@@ -473,7 +473,7 @@ private fun QuestLogItem(
                     ) {
                         Text(
                             text = "✦ +${challenge.points} XP",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (isCompleted) NeonGold else TextMuted
                         )
@@ -485,7 +485,7 @@ private fun QuestLogItem(
                                 Text(
                                     text = "SIGUIENTE",
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                                    fontSize = 8.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Black,
                                     color = accentColor,
                                     letterSpacing = 0.5.sp

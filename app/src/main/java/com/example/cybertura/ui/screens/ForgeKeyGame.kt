@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.model.ForgeBlock
 import com.example.cybertura.game.engine.KeyStrength
+import com.example.cybertura.ui.components.RevealOnChange
 import com.example.cybertura.ui.theme.*
 import com.example.cybertura.ui.viewmodel.ForgeGameState
 import com.example.cybertura.ui.viewmodel.ForgePhase
@@ -90,8 +91,10 @@ fun ForgeKeyGame(
             BuildRound(game, onToggleBlock, onForge, Modifier.graphicsLayer { translationX = hammer.value })
         }
 
-        if (game.phase == ForgePhase.SUCCESS || game.phase == ForgePhase.FAIL) {
-            ResultPanel(game, onContinue)
+        // El resultado trae el botón para seguir: se lleva a la vista al aparecer
+        val showResult = game.phase == ForgePhase.SUCCESS || game.phase == ForgePhase.FAIL
+        RevealOnChange(key = game.eventCount, active = showResult) {
+            if (showResult) ResultPanel(game, onContinue)
         }
     }
 }
@@ -104,7 +107,7 @@ private fun RoundHeader(game: ForgeGameState) {
             Text(
                 text = "RONDA ${game.roundIndex + 1} DE ${game.rounds.size}",
                 color = NeonGold,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.5.sp,
                 modifier = Modifier.weight(1f)
@@ -175,7 +178,7 @@ private fun BuildRound(
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
-                    Text(text = "${key.length} letras", color = TextMuted, fontSize = 11.sp)
+                    Text(text = "${key.length} letras", color = TextMuted, fontSize = 12.sp)
                 }
                 if (game.selectedBlocks.isEmpty()) {
                     Text(
@@ -209,7 +212,7 @@ private fun BuildRound(
         Text(
             text = "⚒️ BLOQUES (máximo ${ForgeGameState.MAX_BLOCKS})",
             color = NeonGold,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 1.sp
         )
@@ -261,7 +264,7 @@ private fun BlockChip(block: ForgeBlock, enabled: Boolean, inKey: Boolean, onCli
                 fontWeight = FontWeight.Bold
             )
             block.caption?.let {
-                Text(text = it, color = TextMuted, fontSize = 10.sp)
+                Text(text = it, color = TextMuted, fontSize = 12.sp)
             }
         }
     }
@@ -294,7 +297,7 @@ private fun StrengthMeter(level: Int, goal: Int, hasKey: Boolean) {
                     Text(
                         text = "${material.emoji} ${material.name}",
                         color = if (hasKey && index == level) TextPrimary else TextMuted,
-                        fontSize = 10.sp,
+                        fontSize = 12.sp,
                         fontWeight = if (hasKey && index == level) FontWeight.Black else FontWeight.Normal,
                         textAlign = TextAlign.Center
                     )
@@ -340,7 +343,7 @@ private fun DefendRound(
                     }
                     game.forgedKeys.lastOrNull()?.let { key ->
                         Column {
-                            Text("Tu llave", color = TextMuted, fontSize = 11.sp)
+                            Text("Tu llave", color = TextMuted, fontSize = 12.sp)
                             Text(
                                 text = "🗝️ $key",
                                 color = TextPrimary,

@@ -107,7 +107,7 @@ fun GameplayScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = module?.title?.uppercase() ?: "MISIÓN",
-                                    fontSize = 10.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
                                     color = accent,
                                     letterSpacing = 1.5.sp
@@ -230,7 +230,7 @@ fun GameplayScreen(
                                         }
                                         Text(
                                             text = "BRIEFING DE MISIÓN",
-                                            fontSize = 10.sp,
+                                            fontSize = 12.sp,
                                             fontWeight = FontWeight.Black,
                                             color = accent,
                                             letterSpacing = 1.5.sp
@@ -299,7 +299,7 @@ fun GameplayScreen(
                                 )
                                 Text(
                                     text = "DESAFÍO",
-                                    fontSize = 10.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
                                     color = accent,
                                     letterSpacing = 1.5.sp
@@ -371,7 +371,7 @@ fun GameplayScreen(
                             )
                             Text(
                                 text = "⚔️ ELIGE TU ACCIÓN:",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Black,
                                 color = accent,
                                 letterSpacing = 1.sp

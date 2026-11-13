@@ -30,6 +30,7 @@ import com.example.cybertura.game.engine.ArcadeEvent
 import com.example.cybertura.game.engine.ArcadeOutcome
 import com.example.cybertura.game.engine.ArcadeSpawn
 import com.example.cybertura.game.engine.ArcadeWaveSim
+import com.example.cybertura.ui.components.RevealOnChange
 import com.example.cybertura.ui.theme.*
 import com.example.cybertura.ui.viewmodel.ArcadeGameState
 import com.example.cybertura.ui.viewmodel.ArcadePhase
@@ -65,32 +66,35 @@ fun ArcadeDefenseGame(
         if (game.phase == ArcadePhase.WAVE_CLEAR && !game.finished) SoundManager.playCorrect()
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            text = "OLEADA ${game.waveIndex + 1} DE ${game.config.waves.size}",
-            color = NeonGold,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.5.sp
-        )
+    // Al empezar una oleada el campo entero debe verse: los objetos caen desde arriba
+    RevealOnChange(key = game.attempt, active = game.phase == ArcadePhase.PLAYING) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                text = "OLEADA ${game.waveIndex + 1} DE ${game.config.waves.size}",
+                color = NeonGold,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.5.sp
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(440.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .background(Brush.verticalGradient(listOf(ForestTop, ForestBottom)))
-                .border(1.5.dp, SafeColor.copy(alpha = 0.4f), RoundedCornerShape(18.dp))
-        ) {
-            val sim = game.sim
-            if (game.phase == ArcadePhase.PLAYING && sim != null) {
-                key(sim) {
-                    WaveRunner(sim = sim, onEnded = onWaveEnded, onItemResolved = onItemResolved)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(440.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brush.verticalGradient(listOf(ForestTop, ForestBottom)))
+                    .border(1.5.dp, SafeColor.copy(alpha = 0.4f), RoundedCornerShape(18.dp))
+            ) {
+                val sim = game.sim
+                if (game.phase == ArcadePhase.PLAYING && sim != null) {
+                    key(sim) {
+                        WaveRunner(sim = sim, onEnded = onWaveEnded, onItemResolved = onItemResolved)
+                    }
+                } else {
+                    // Bosque de fondo mientras se muestra el panel
+                    ForestLine(Modifier.align(Alignment.BottomCenter))
+                    ArcadePanel(game, onStartWave, Modifier.align(Alignment.Center))
                 }
-            } else {
-                // Bosque de fondo mientras se muestra el panel
-                ForestLine(Modifier.align(Alignment.BottomCenter))
-                ArcadePanel(game, onStartWave, Modifier.align(Alignment.Center))
             }
         }
     }
@@ -331,7 +335,7 @@ private fun FallingCard(item: ArcadeItem, modifier: Modifier = Modifier) {
             Text(
                 text = item.text,
                 color = TextPrimary,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 lineHeight = 13.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,

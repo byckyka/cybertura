@@ -122,14 +122,14 @@ fun XpBar(
                     ) {
                         Text(
                             text = "$level",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Black,
                             color = DungeonBlack
                         )
                     }
                     Text(
                         text = "NIVEL $level",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Black,
                         color = NeonGold,
                         letterSpacing = 1.sp
@@ -137,7 +137,7 @@ fun XpBar(
                 }
                 Text(
                     text = "$currentXp / $maxXp XP",
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextSecondary
                 )
@@ -301,7 +301,7 @@ fun CyberTopBar(
                             Text(
                                 text = rankTitle,
                                 color = NeonCyan,
-                                fontSize = 10.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.5.sp
                             )
@@ -363,7 +363,7 @@ fun CyberTopBar(
                                 Text(
                                     text = "XP",
                                     color = NeonAmber,
-                                    fontSize = 10.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Black
                                 )
                             }
@@ -627,7 +627,7 @@ fun FeedbackModal(
                             Column {
                                 Text(
                                     text = "🛡️ CONOCIMIENTO DESBLOQUEADO",
-                                    fontSize = 10.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
                                     color = ShieldGlow,
                                     letterSpacing = 1.sp

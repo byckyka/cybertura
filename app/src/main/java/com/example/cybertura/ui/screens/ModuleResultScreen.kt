@@ -250,7 +250,7 @@ fun ModuleResultScreen(
                                     Text(
                                         text = "★ RECOMPENSA LEGENDARIA ★",
                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                        fontSize = 10.sp,
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Black,
                                         color = NeonGold,
                                         letterSpacing = 1.5.sp

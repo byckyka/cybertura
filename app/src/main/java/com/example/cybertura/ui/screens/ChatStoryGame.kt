@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cybertura.audio.SoundManager
+import com.example.cybertura.ui.components.RevealOnChange
 import com.example.cybertura.ui.theme.*
 import com.example.cybertura.ui.viewmodel.ChatGameState
 import com.example.cybertura.ui.viewmodel.ChatLine
@@ -72,10 +73,15 @@ fun ChatStoryGame(
         }
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ChatHeader(game)
-        ChatWindow(game)
-        ChatControls(game, onChoose, onRetry)
+    // Cuando toca responder (o leer por qué una respuesta no ayudó), el chat y sus opciones
+    // se traen a la vista: quedaban por debajo del borde de la pantalla.
+    val awaitsPlayer = game.phase == ChatPhase.CHOOSING || game.phase == ChatPhase.RETRY
+    RevealOnChange(key = game.stepIndex to game.phase, active = awaitsPlayer) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            ChatHeader(game)
+            ChatWindow(game)
+            ChatControls(game, onChoose, onRetry)
+        }
     }
 }
 
@@ -202,7 +208,7 @@ private fun OtherBubble(line: ChatLine) {
             Text(
                 text = line.from ?: "",
                 color = nameColor(line.from ?: ""),
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Black
             )
             Surface(
@@ -225,7 +231,7 @@ private fun OtherBubble(line: ChatLine) {
 private fun PlayerMessage(line: ChatLine) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(max = 270.dp)) {
-            Text(text = "Tú", color = PlayerBubble, fontSize = 11.sp, fontWeight = FontWeight.Black)
+            Text(text = "Tú", color = PlayerBubble, fontSize = 12.sp, fontWeight = FontWeight.Black)
             Surface(
                 shape = RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
                 color = PlayerBubble.copy(alpha = if (line.retracted) 0.25f else 0.9f),

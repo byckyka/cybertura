@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.model.SwipeCard
+import com.example.cybertura.ui.components.RevealOnChange
 import com.example.cybertura.ui.theme.*
 import com.example.cybertura.ui.viewmodel.SwipeGameState
 import kotlinx.coroutines.launch
@@ -161,8 +162,11 @@ fun SwipeSortGame(
             }
         }
 
-        // Explicación de la última carta
-        SwipeFeedback(game, safeLabel, trapLabel, onAcknowledge)
+        // Explicación de la última carta. Tras un fallo el mazo se bloquea hasta leerla,
+        // así que se trae a la vista para que el niño no se quede esperando.
+        RevealOnChange(key = game.swipeCount, active = game.awaitingAck) {
+            SwipeFeedback(game, safeLabel, trapLabel, onAcknowledge)
+        }
 
         // Botones grandes: alternativa a deslizar (y más accesible)
         Row(
@@ -324,7 +328,7 @@ private fun MessageCard(
                 Text(
                     text = "Desliza la carta  ←  →",
                     color = TextMuted,
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }

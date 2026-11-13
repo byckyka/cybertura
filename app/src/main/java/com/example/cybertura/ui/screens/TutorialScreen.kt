@@ -255,7 +255,7 @@ private fun ControlHint(icon: String, label: String) {
         }
         Text(
             text = label,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             color = TextMuted,
             textAlign = TextAlign.Center,
             lineHeight = 15.sp
@@ -361,7 +361,7 @@ private fun NpcSlide(
                     )
                     Text(
                         text = name.uppercase(),
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Black,
                         color = NeonCyan,
                         letterSpacing = 1.sp
@@ -448,7 +448,7 @@ private fun ReadySlide() {
                             )
                             Text(
                                 text = npc.title,
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = TextMuted
                             )
                         }
