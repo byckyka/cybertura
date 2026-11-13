@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import com.example.cybertura.research.ResearchLogger
+import com.example.cybertura.research.TestMoment
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.cybertura.audio.SoundManager
@@ -90,7 +91,14 @@ fun CyberturaNavHost(
                         // la bienvenida completa en vez de entrar sin perfil.
                         repository.setAgentProfile(name, characterId)
                         repository.markTutorialSeen()
-                        navController.navigate(Screen.Home.route) {
+                        // En el piloto, antes de jugar se responde el cuestionario de conocimientos
+                        val status = researchLogger?.status?.value
+                        val next = if (status != null && status.isRecording && !status.preTestDone) {
+                            Screen.KnowledgeTest.createRoute(TestMoment.PRE.code)
+                        } else {
+                            Screen.Home.route
+                        }
+                        navController.navigate(next) {
                             popUpTo(Screen.Profile.route) { inclusive = true }
                         }
                     }
@@ -297,7 +305,10 @@ fun CyberturaNavHost(
                     badgesViewModel.clearResearchData()
                     Toast.makeText(context, "Datos del piloto borrados", Toast.LENGTH_SHORT).show()
                 },
-                onOpenSurvey = { navController.navigate(Screen.Survey.route) }
+                onOpenSurvey = { navController.navigate(Screen.Survey.route) },
+                onOpenFinalTest = {
+                    navController.navigate(Screen.KnowledgeTest.createRoute(TestMoment.POST.code))
+                }
             )
         }
 
@@ -310,14 +321,46 @@ fun CyberturaNavHost(
                 onShowCredits = { navController.navigate(Screen.Credits.route) },
                 onFinish = {
                     val status = researchLogger?.status?.value
-                    if (status != null && status.isRecording && !status.surveyDone) {
-                        // En el piloto, la aventura termina con la encuesta de percepción
-                        navController.navigate(Screen.Survey.route) {
+                    // En el piloto, la aventura termina con el cuestionario final y la encuesta
+                    val pilotStep = when {
+                        status == null || !status.isRecording -> null
+                        !status.postTestDone -> Screen.KnowledgeTest.createRoute(TestMoment.POST.code)
+                        !status.surveyDone -> Screen.Survey.route
+                        else -> null
+                    }
+                    if (pilotStep != null) {
+                        navController.navigate(pilotStep) {
                             popUpTo(Screen.Home.route) { inclusive = false }
                         }
                     } else {
                         // Vuelve a Home y borra el historial hasta allí
                         navController.popBackStack(Screen.Home.route, inclusive = false)
+                    }
+                }
+            )
+        }
+
+        // ── Cuestionario de conocimientos, antes y después (modo investigador) ─
+        composable(
+            route = Screen.KnowledgeTest.route,
+            arguments = listOf(navArgument("moment") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val moment = TestMoment.fromCode(backStackEntry.arguments?.getString("moment")) ?: return@composable
+            KnowledgeTestScreen(
+                moment = moment,
+                onSubmit = { answers ->
+                    researchLogger?.saveKnowledgeTest(moment, answers)
+                    when {
+                        // Antes de jugar: el mundo aún no está en la pila
+                        moment == TestMoment.PRE -> navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.KnowledgeTest.route) { inclusive = true }
+                        }
+                        // Después de jugar sigue la encuesta de percepción, si falta
+                        researchLogger?.status?.value?.surveyDone == false ->
+                            navController.navigate(Screen.Survey.route) {
+                                popUpTo(Screen.Home.route) { inclusive = false }
+                            }
+                        else -> navController.popBackStack(Screen.Home.route, inclusive = false)
                     }
                 }
             )

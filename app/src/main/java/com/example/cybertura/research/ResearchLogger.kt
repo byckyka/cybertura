@@ -25,7 +25,10 @@ data class ResearchStatus(
     /** Participantes (sesiones) con datos guardados en el teléfono, contando la activa. */
     val savedSessions: Int = 0,
     /** El participante de la sesión activa ya respondió la encuesta de percepción. */
-    val surveyDone: Boolean = false
+    val surveyDone: Boolean = false,
+    /** El participante ya respondió el cuestionario de conocimientos antes / después de jugar. */
+    val preTestDone: Boolean = false,
+    val postTestDone: Boolean = false
 ) {
     val isRecording: Boolean get() = participant != null
 }
@@ -50,6 +53,7 @@ class ResearchLogger(
     private val dir = File(appContext.filesDir, DIR)
     private val attemptsFile = File(dir, "intentos_v2.csv")
     private val surveyFile = File(dir, "encuesta.csv")
+    private val knowledgeFile = File(dir, "conocimientos.csv")
 
     /**
      * Todo lo que toca el archivo va en un solo hilo, en orden y sin bloquear la interfaz:
@@ -187,6 +191,30 @@ class ResearchLogger(
         }
     }
 
+    // ── Cuestionario de conocimientos (antes y después) ──────────────────────
+
+    /** Guarda el cuestionario del participante de la sesión activa; no hace nada sin sesión. */
+    fun saveKnowledgeTest(moment: TestMoment, answers: List<Int>) {
+        val sessionId = prefs.getString(K_SESSION, null) ?: return
+        val line = KnowledgeRow(
+            sessionId = sessionId,
+            participant = prefs.getString(K_CODE, "") ?: "",
+            sessionStartMs = prefs.getLong(K_START, 0L),
+            moment = moment,
+            answers = KnowledgeTest.normalize(answers)
+        ).toCsvLine()
+        io.execute {
+            runCatching { knowledgeFile.appendText(line, Charsets.UTF_8) }
+                .onFailure { Log.e(TAG, "No se pudo guardar el cuestionario", it) }
+            publishStatus()
+        }
+    }
+
+    private fun readKnowledgeFromDisk(): List<KnowledgeRow> {
+        if (!knowledgeFile.exists()) return emptyList()
+        return knowledgeFile.readLines(Charsets.UTF_8).mapNotNull { KnowledgeRow.parse(it) }
+    }
+
     private fun readSurveysFromDisk(): List<SurveyRow> {
         if (!surveyFile.exists()) return emptyList()
         return surveyFile.readLines(Charsets.UTF_8).mapNotNull { SurveyRow.parse(it) }
@@ -198,7 +226,7 @@ class ResearchLogger(
 
     private fun buildReport(): ByteArray {
         val rows = readRows() // espera las escrituras pendientes, también las de la encuesta
-        return ResearchReport.build(rows, readSurveysFromDisk()).toByteArray(Charsets.UTF_8)
+        return ResearchReport.build(rows, readSurveysFromDisk(), readKnowledgeFromDisk()).toByteArray(Charsets.UTF_8)
     }
 
     /** Guarda el CSV en una carpeta elegida por el investigador (ej. Descargas). No llamar en el hilo principal. */
@@ -237,6 +265,7 @@ class ResearchLogger(
         io.execute {
             attemptsFile.delete()
             surveyFile.delete()
+            knowledgeFile.delete()
             File(appContext.cacheDir, "export").deleteRecursively()
             publishStatus()
         }
@@ -261,12 +290,16 @@ class ResearchLogger(
         val sessionId = prefs.getString(K_SESSION, null)
         val rows = runCatching { readRowsFromDisk() }.getOrDefault(emptyList())
         val surveys = runCatching { readSurveysFromDisk() }.getOrDefault(emptyList())
+        val tests = runCatching { readKnowledgeFromDisk() }.getOrDefault(emptyList())
+            .filter { sessionId != null && it.sessionId == sessionId }
         _status.value = ResearchStatus(
             participant = prefs.getString(K_CODE, null),
             sessionStartMs = prefs.getLong(K_START, 0L),
             attemptsInSession = rows.count { it.sessionId == sessionId },
             savedSessions = (rows.map { it.sessionId }.toSet() + listOfNotNull(sessionId)).size,
-            surveyDone = sessionId != null && surveys.any { it.sessionId == sessionId }
+            surveyDone = sessionId != null && surveys.any { it.sessionId == sessionId },
+            preTestDone = tests.any { it.moment == TestMoment.PRE },
+            postTestDone = tests.any { it.moment == TestMoment.POST }
         )
     }
 

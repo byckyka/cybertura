@@ -11,6 +11,11 @@ sealed class Screen(val route: String) {
     /** Encuesta de percepción del piloto (solo con una sesión de investigación abierta). */
     object Survey : Screen("survey")
 
+    /** Cuestionario de conocimientos del piloto; [moment] es el código de `TestMoment`. */
+    object KnowledgeTest : Screen("knowledge/{moment}") {
+        fun createRoute(moment: String) = "knowledge/$moment"
+    }
+
     object ModuleDetail : Screen("module/{moduleId}") {
         fun createRoute(moduleId: String) = "module/$moduleId"
     }

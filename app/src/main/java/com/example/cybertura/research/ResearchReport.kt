@@ -122,7 +122,11 @@ object ResearchReport {
      * Una fila por participante y reto. Cuenta los intentos hasta el primero que lo completó
      * (si después lo repitió, esas repeticiones no se suman).
      */
-    fun build(rows: List<AttemptRow>, surveys: List<SurveyRow> = emptyList()): String {
+    fun build(
+        rows: List<AttemptRow>,
+        surveys: List<SurveyRow> = emptyList(),
+        tests: List<KnowledgeRow> = emptyList()
+    ): String {
         // SimpleDateFormat no es seguro entre hilos: se crea uno por informe
         val day = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
         val sb = StringBuilder(BOM)
@@ -165,11 +169,55 @@ object ResearchReport {
             )
         }
 
+        appendKnowledgeTests(sb, tests, day)
         appendSurveys(sb, surveys, day)
 
         sb.append("\r\n")
         GUIDE.forEach { sb.append(ResearchCsv.line(listOf(it))) }
         return sb.toString()
+    }
+
+    /**
+     * Cuestionario de conocimientos: una fila por participante y momento (antes / después de
+     * jugar); si lo respondió más de una vez en el mismo momento, cuenta la última. Cada pregunta
+     * sale como 1 (acertó), 0 (falló), NS (eligió "No lo sé") o vacío (no la respondió).
+     */
+    private fun appendKnowledgeTests(sb: StringBuilder, tests: List<KnowledgeRow>, day: SimpleDateFormat) {
+        if (tests.isEmpty()) return
+        val questions = KnowledgeTest.QUESTIONS
+        sb.append("\r\n")
+        sb.append(ResearchCsv.line(listOf("CUESTIONARIO DE CONOCIMIENTOS (1 = acertó; 0 = falló; NS = no lo sé; vacío = no respondió)")))
+        sb.append(
+            ResearchCsv.line(
+                listOf("Participante", "Fecha", "Momento", "Aciertos", "De") + questions.indices.map { "C${it + 1}" }
+            )
+        )
+        val latest = tests.groupBy { it.sessionId to it.moment }.values.map { it.last() }
+            .sortedWith(compareBy({ row -> tests.indexOfFirst { it.sessionId == row.sessionId } }, { it.moment.ordinal }))
+        for (test in latest) {
+            val answers = KnowledgeTest.normalize(test.answers)
+            sb.append(
+                ResearchCsv.line(
+                    listOf(
+                        test.participant,
+                        day.format(Date(test.sessionStartMs)),
+                        test.moment.label,
+                        KnowledgeTest.score(answers).toString(),
+                        questions.size.toString()
+                    ) + answers.mapIndexed { i, answer ->
+                        when {
+                            answer == KnowledgeTest.NO_ANSWER -> ""
+                            answer == KnowledgeTest.dontKnow(i) -> "NS"
+                            KnowledgeTest.isCorrect(i, answer) -> "1"
+                            else -> "0"
+                        }
+                    }
+                )
+            )
+        }
+        questions.forEachIndexed { i, q ->
+            sb.append(ResearchCsv.line(listOf("C${i + 1}: ${q.text} Respuesta correcta: ${q.options[q.correct - 1]}")))
+        }
     }
 
     /**
