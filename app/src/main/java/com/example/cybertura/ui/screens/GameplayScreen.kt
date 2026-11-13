@@ -53,7 +53,7 @@ fun GameplayScreen(
     onChooseForgeOption: (optionId: String) -> Unit = {},
     onContinueForge: () -> Unit = {},
     onStartArcadeWave: () -> Unit = {},
-    onArcadeWaveEnded: (shieldsLost: Int, failed: Boolean) -> Unit = { _, _ -> },
+    onArcadeWaveEnded: () -> Unit = {},
     onArcadeItemResolved: (item: com.example.cybertura.data.model.ArcadeItem, tapped: Boolean) -> Unit = { _, _ -> }
 ) {
     val challenge = uiState.challenge

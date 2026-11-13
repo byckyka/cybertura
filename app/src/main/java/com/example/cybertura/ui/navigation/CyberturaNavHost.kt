@@ -168,7 +168,7 @@ fun CyberturaNavHost(
                 onChooseForgeOption = { gameplayViewModel.chooseForgeOption(it) },
                 onContinueForge = { gameplayViewModel.continueForge() },
                 onStartArcadeWave = { gameplayViewModel.startArcadeWave() },
-                onArcadeWaveEnded = { lost, failed -> gameplayViewModel.onArcadeWaveEnded(lost, failed) },
+                onArcadeWaveEnded = { gameplayViewModel.onArcadeWaveEnded() },
                 onArcadeItemResolved = { item, tapped -> gameplayViewModel.onArcadeItemResolved(item, tapped) }
             )
         }

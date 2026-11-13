@@ -13,6 +13,7 @@ import com.example.cybertura.data.model.ChatStory
 import com.example.cybertura.data.model.Clue
 import com.example.cybertura.data.model.ForgeBlock
 import com.example.cybertura.data.model.ForgeRound
+import com.example.cybertura.game.engine.ArcadeWaveSim
 import com.example.cybertura.game.engine.KeyStrength
 import com.example.cybertura.data.model.CyberModule
 import com.example.cybertura.data.model.Option
@@ -70,7 +71,12 @@ data class ArcadeGameState(
     /** Consejo de la última oleada superada. */
     val lastTip: String? = null,
     /** Se superó la última oleada. */
-    val finished: Boolean = false
+    val finished: Boolean = false,
+    /**
+     * Oleada en curso (solo en fase PLAYING). Es un objeto vivo que la pantalla hace avanzar;
+     * se guarda aquí para que la oleada no se reinicie si la pantalla se recrea.
+     */
+    val sim: ArcadeWaveSim? = null
 ) {
     val shields: Int get() = (config.shields ?: 3).coerceAtLeast(1)
     val wave: ArcadeWave get() = config.waves[waveIndex]
@@ -560,18 +566,25 @@ class GameplayViewModel(
         _uiState.update { state ->
             val arcade = state.arcade ?: return@update state
             if (arcade.phase == ArcadePhase.PLAYING || arcade.finished) return@update state
-            state.copy(arcade = arcade.copy(phase = ArcadePhase.PLAYING, attempt = arcade.attempt + 1))
+            state.copy(
+                arcade = arcade.copy(
+                    phase = ArcadePhase.PLAYING,
+                    attempt = arcade.attempt + 1,
+                    sim = ArcadeWaveSim(arcade.wave, arcade.config.items, arcade.shields)
+                )
+            )
         }
     }
 
-    /** La pantalla avisa que terminó la oleada: [failed] si se acabaron los escudos. */
-    fun onArcadeWaveEnded(shieldsLost: Int, failed: Boolean) {
+    /** La pantalla avisa que la oleada en curso terminó; el resultado se lee de la simulación. */
+    fun onArcadeWaveEnded() {
         val state = _uiState.value
         val arcade = state.arcade ?: return
         if (arcade.phase != ArcadePhase.PLAYING) return
-        val updated = arcade.copy(shieldsLostTotal = arcade.shieldsLostTotal + shieldsLost)
+        val sim = arcade.sim?.takeIf { it.isOver } ?: return
+        val updated = arcade.copy(shieldsLostTotal = arcade.shieldsLostTotal + sim.shieldsLost, sim = null)
         when {
-            failed -> updateArcade { updated.copy(phase = ArcadePhase.WAVE_FAILED, wavesFailed = arcade.wavesFailed + 1) }
+            sim.failed -> updateArcade { updated.copy(phase = ArcadePhase.WAVE_FAILED, wavesFailed = arcade.wavesFailed + 1) }
             arcade.waveIndex == arcade.config.waves.lastIndex -> {
                 updateArcade { updated.copy(phase = ArcadePhase.WAVE_CLEAR, lastTip = arcade.wave.tip, finished = true) }
                 val challenge = state.challenge ?: return

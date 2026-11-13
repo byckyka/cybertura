@@ -26,12 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.model.ArcadeItem
-import com.example.cybertura.data.model.ArcadeWave
+import com.example.cybertura.game.engine.ArcadeEvent
+import com.example.cybertura.game.engine.ArcadeOutcome
+import com.example.cybertura.game.engine.ArcadeSpawn
+import com.example.cybertura.game.engine.ArcadeWaveSim
 import com.example.cybertura.ui.theme.*
 import com.example.cybertura.ui.viewmodel.ArcadeGameState
 import com.example.cybertura.ui.viewmodel.ArcadePhase
 import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 private val ThreatColor = NeonPink
 private val SafeColor = NeonGreen
@@ -40,23 +42,21 @@ private val ForestBottom = Color(0xFF1F5A30)
 
 private const val ITEM_WIDTH_FRACTION = 0.3f
 private val ITEM_HEIGHT = 74.dp
-private const val THREAT_RATIO = 0.6f
 private const val MESSAGE_MS = 2400L
-
-/** Objeto que cae durante una oleada. */
-private class Spawn(val uid: Int, val item: ArcadeItem, val lane: Int, val spawnAt: Long)
-
-private enum class Outcome { DESTROYED, PASSED, HIT, WRONG_TAP }
+/** Pausa al terminar la oleada, para que se alcance a ver el último resultado. */
+private const val WAVE_END_PAUSE_MS = 700L
 
 /**
  * Arcade "Defiende el bosque": caen descargas y archivos; el niño toca las amenazas
  * para destruirlas y deja pasar lo seguro. Oleadas cada vez más rápidas, con escudos.
+ *
+ * Las reglas están en [ArcadeWaveSim]; esta pantalla solo dibuja, da sonido y reporta.
  */
 @Composable
 fun ArcadeDefenseGame(
     game: ArcadeGameState,
     onStartWave: () -> Unit,
-    onWaveEnded: (shieldsLost: Int, failed: Boolean) -> Unit,
+    onWaveEnded: () -> Unit,
     /** Cada objeto resuelto: [tapped] = el niño lo tocó; si no, llegó al bosque. */
     onItemResolved: (item: ArcadeItem, tapped: Boolean) -> Unit = { _, _ -> }
 ) {
@@ -82,15 +82,10 @@ fun ArcadeDefenseGame(
                 .background(Brush.verticalGradient(listOf(ForestTop, ForestBottom)))
                 .border(1.5.dp, SafeColor.copy(alpha = 0.4f), RoundedCornerShape(18.dp))
         ) {
-            if (game.phase == ArcadePhase.PLAYING) {
-                key(game.waveIndex, game.attempt) {
-                    WaveRunner(
-                        wave = game.wave,
-                        pool = game.config.items,
-                        maxShields = game.shields,
-                        onEnded = onWaveEnded,
-                        onItemResolved = onItemResolved
-                    )
+            val sim = game.sim
+            if (game.phase == ArcadePhase.PLAYING && sim != null) {
+                key(sim) {
+                    WaveRunner(sim = sim, onEnded = onWaveEnded, onItemResolved = onItemResolved)
                 }
             } else {
                 // Bosque de fondo mientras se muestra el panel
@@ -171,97 +166,78 @@ private fun ArcadePanel(game: ArcadeGameState, onStartWave: () -> Unit, modifier
     }
 }
 
-/** Arma la lista de objetos de la oleada: ~60 % amenazas, sin repetir carril dos veces seguidas. */
-private fun buildWave(wave: ArcadeWave, pool: List<ArcadeItem>): List<Spawn> {
-    val threats = pool.filter { it.isThreat }.shuffled()
-    val safes = pool.filter { !it.isThreat }.shuffled()
-    val spawnMs = wave.spawnMs ?: 1200L
-    var lastLane = -1
-    return List(wave.count) { i ->
-        val useThreat = safes.isEmpty() || (threats.isNotEmpty() && Random.nextFloat() < THREAT_RATIO)
-        val item = if (useThreat) threats[i % threats.size] else safes[i % safes.size]
-        val lane = (0..2).filter { it != lastLane }.random().also { lastLane = it }
-        Spawn(uid = i, item = item, lane = lane, spawnAt = 600L + i * spawnMs)
-    }
-}
-
-/** Simulación de una oleada, cuadro a cuadro. */
+/** Dibuja una oleada y la hace avanzar cuadro a cuadro. */
 @Composable
 private fun WaveRunner(
-    wave: ArcadeWave,
-    pool: List<ArcadeItem>,
-    maxShields: Int,
-    onEnded: (shieldsLost: Int, failed: Boolean) -> Unit,
+    sim: ArcadeWaveSim,
+    onEnded: () -> Unit,
     onItemResolved: (item: ArcadeItem, tapped: Boolean) -> Unit
 ) {
     val haptics = LocalHapticFeedback.current
     val density = LocalDensity.current
     val currentOnEnded by rememberUpdatedState(onEnded)
     val currentOnItemResolved by rememberUpdatedState(onItemResolved)
-    val spawns = remember { buildWave(wave, pool) }
-    val fallMs = wave.fallMs ?: 6000L
-    val outcomes = remember { mutableStateMapOf<Int, Outcome>() }
-    var elapsed by remember { mutableLongStateOf(0L) }
-    var shields by remember { mutableIntStateOf(maxShields) }
+    val spawns = sim.spawns
+    val maxShields = sim.maxShields
+
+    // La simulación no es estado de Compose: estas copias se actualizan tras cada paso o toque
+    // para que la pantalla se redibuje.
+    var elapsed by remember { mutableLongStateOf(sim.elapsedMs) }
+    var shields by remember { mutableIntStateOf(sim.shields) }
+    var resolved by remember { mutableIntStateOf(sim.resolvedCount) }
     var message by remember { mutableStateOf<Pair<String, Boolean>?>(null) }
     var messageAt by remember { mutableLongStateOf(0L) }
     var areaWidth by remember { mutableIntStateOf(1) }
     var areaHeight by remember { mutableIntStateOf(1) }
-    var ended by remember { mutableStateOf(false) }
+
+    fun sync() {
+        elapsed = sim.elapsedMs
+        shields = sim.shields
+        resolved = sim.resolvedCount
+    }
 
     fun showMessage(text: String, good: Boolean) {
         message = text to good
-        messageAt = elapsed
+        messageAt = sim.elapsedMs
     }
 
-    fun loseShield(text: String) {
-        shields -= 1
-        SoundManager.playFail()
-        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        showMessage(text, good = false)
-    }
-
-    fun tap(spawn: Spawn) {
-        if (ended || spawn.uid in outcomes) return
-        currentOnItemResolved(spawn.item, true)
-        if (spawn.item.isThreat) {
-            outcomes[spawn.uid] = Outcome.DESTROYED
-            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            showMessage("💥 ¡Destruiste: ${spawn.item.text}!", good = true)
-        } else {
-            outcomes[spawn.uid] = Outcome.WRONG_TAP
-            loseShield("🛡️ -1 · ¡Eso era seguro! ${spawn.item.feedback}")
+    /** Sonido, vibración y mensaje de lo que pasó con un objeto, y aviso para el registro. */
+    fun report(event: ArcadeEvent) {
+        val item = event.spawn.item
+        currentOnItemResolved(item, event.outcome.tapped)
+        if (event.outcome.losesShield) {
+            SoundManager.playFail()
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         }
+        when (event.outcome) {
+            ArcadeOutcome.DESTROYED -> {
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                showMessage("💥 ¡Destruiste: ${item.text}!", good = true)
+            }
+            ArcadeOutcome.WRONG_TAP -> showMessage("🛡️ -1 · ¡Eso era seguro! ${item.feedback}", good = false)
+            ArcadeOutcome.HIT -> showMessage("🛡️ -1 · Se coló: ${item.text}. ${item.feedback}", good = false)
+            ArcadeOutcome.PASSED -> showMessage("✅ Dejaste pasar: ${item.text}", good = true)
+        }
+    }
+
+    fun tap(spawn: ArcadeSpawn) {
+        val event = sim.tap(spawn.uid) ?: return
+        report(event)
+        sync()
     }
 
     // Bucle de juego: avanza el tiempo con pasos acotados (si la app se pausa, no salta)
-    LaunchedEffect(Unit) {
+    LaunchedEffect(sim) {
         var last = withFrameMillis { it }
-        while (!ended) {
+        while (!sim.isOver) {
             val now = withFrameMillis { it }
-            elapsed += (now - last).coerceIn(0L, 50L)
+            val events = sim.advance((now - last).coerceIn(0L, 50L))
             last = now
-            for (spawn in spawns) {
-                if (spawn.uid in outcomes || elapsed < spawn.spawnAt + fallMs) continue
-                currentOnItemResolved(spawn.item, false)
-                if (spawn.item.isThreat) {
-                    outcomes[spawn.uid] = Outcome.HIT
-                    loseShield("🛡️ -1 · Se coló: ${spawn.item.text}. ${spawn.item.feedback}")
-                } else {
-                    outcomes[spawn.uid] = Outcome.PASSED
-                    showMessage("✅ Dejaste pasar: ${spawn.item.text}", good = true)
-                }
-            }
-            if (shields <= 0) {
-                ended = true
-                delay(700)
-                currentOnEnded(maxShields, true)
-            } else if (outcomes.size == spawns.size) {
-                ended = true
-                delay(700)
-                currentOnEnded(maxShields - shields, false)
-            }
+            events.forEach { report(it) }
+            sync()
         }
+        delay(WAVE_END_PAUSE_MS)
+        currentOnEnded()
     }
 
     Box(
@@ -278,10 +254,11 @@ private fun WaveRunner(
         val itemWidthPx = areaWidth * ITEM_WIDTH_FRACTION
         val itemHeightPx = with(density) { ITEM_HEIGHT.toPx() }
         val fallDistance = (areaHeight - itemHeightPx - with(density) { 34.dp.toPx() }).coerceAtLeast(1f)
-        for (spawn in spawns) {
-            if (spawn.uid in outcomes || elapsed < spawn.spawnAt) continue
-            val progress = ((elapsed - spawn.spawnAt).toFloat() / fallMs).coerceIn(0f, 1f)
-            val laneX = (areaWidth - itemWidthPx) * (spawn.lane / 2f)
+        // Leer `elapsed` y `resolved` hace que la lista se recalcule en cada paso de la simulación
+        val falling = remember(elapsed, resolved) { spawns.filter { sim.isFalling(it) } }
+        for (spawn in falling) {
+            val progress = sim.progress(spawn)
+            val laneX = (areaWidth - itemWidthPx) * (spawn.lane.toFloat() / (ArcadeWaveSim.LANES - 1))
             key(spawn.uid) {
                 FallingCard(
                     item = spawn.item,
@@ -308,7 +285,7 @@ private fun WaveRunner(
                 ShieldsRow(shields.coerceAtLeast(0), maxShields)
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = "${outcomes.size}/${spawns.size}",
+                    text = "$resolved/${spawns.size}",
                     color = TextSecondary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
