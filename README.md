@@ -45,12 +45,12 @@ Los módulos se juegan en el orden de misiones definido en `NpcRegistry` (`game/
 | # | Módulo | Tema | Minijuego |
 |---|---|---|---|
 | 1 | Comunidad y Respeto Digital | Ciberacoso | `CHAT_STORY`: el chat del grupo |
-| 2 | Guardianes de la Contraseña | Contraseñas seguras | `FORGE_KEY`: forjar una llave fuerte |
-| 3 | Hogar Conectado y Seguro | Wi-Fi y dispositivos | `CHAT_STORY`: el chat de la familia |
-| 4 | Bosque Libre de Virus | Malware | `TAP_DEFENSE`: defiende el bosque |
-| 5 | Escudo de Privacidad | Datos personales | `SWIPE_SORT`: ¿lo comparto o lo guardo? |
-| 6 | Cazadores de Trampas | Phishing | `SWIPE_SORT`: ¿seguro o trampa? |
-| 7 | Jugadores Inteligentes | Juegos en línea | `SPOT_THE_CLUES`: detective del chat del juego |
+| 2 | Escudo de Privacidad | Datos personales | `SWIPE_SORT`: ¿lo comparto o lo guardo? |
+| 3 | Guardianes de la Contraseña | Contraseñas seguras | `FORGE_KEY`: forjar una llave fuerte |
+| 4 | Jugadores Inteligentes | Juegos en línea | `SPOT_THE_CLUES`: detective del chat del juego |
+| 5 | Hogar Conectado y Seguro | Wi-Fi y dispositivos | `CHAT_STORY`: el chat de la familia |
+| 6 | Bosque Libre de Virus | Malware | `TAP_DEFENSE`: defiende el bosque |
+| 7 | Cazadores de Trampas | Phishing | `SWIPE_SORT`: ¿seguro o trampa? |
 | 8 | Huella Digital Responsable | Redes sociales | `SPOT_THE_CLUES`: detective de publicaciones |
 
 ## Stack tecnológico
