@@ -68,7 +68,9 @@ fun ResearchPanelDialog(
     onEndSession: () -> Unit,
     onExportToFolder: () -> Unit,
     onShare: () -> Unit,
-    onClearData: () -> Unit
+    onClearData: () -> Unit,
+    /** Abre la encuesta de percepción para el participante de la sesión activa. */
+    onOpenSurvey: () -> Unit = {}
 ) {
     var code by remember { mutableStateOf("") }
     var confirmStart by remember { mutableStateOf(false) }
@@ -106,6 +108,11 @@ fun ResearchPanelDialog(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = NeonAmber)
                     ) { Text("Terminar sesión de ${status.participant}", color = DungeonBlack, fontWeight = FontWeight.Bold) }
+                    // La encuesta sale sola al terminar la aventura; este botón sirve si el niño
+                    // no alcanzó a terminarla en el tiempo de la sesión.
+                    OutlinedButton(onClick = onOpenSurvey, modifier = Modifier.fillMaxWidth()) {
+                        Text(if (status.surveyDone) "✓ Encuesta respondida (repetir)" else "Abrir encuesta del participante")
+                    }
                 }
 
                 // Nueva sesión

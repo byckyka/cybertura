@@ -50,7 +50,8 @@ fun BadgesScreen(
     onEndResearchSession: () -> Unit = {},
     onExportResearchToFolder: () -> Unit = {},
     onShareResearch: () -> Unit = {},
-    onClearResearch: () -> Unit = {}
+    onClearResearch: () -> Unit = {},
+    onOpenSurvey: () -> Unit = {}
 ) {
     var showResetDialog by remember { mutableStateOf(false) }
     // Modo investigador: oculto para los niños (5 toques en el título + PIN)
@@ -323,7 +324,11 @@ fun BadgesScreen(
             onEndSession = onEndResearchSession,
             onExportToFolder = onExportResearchToFolder,
             onShare = onShareResearch,
-            onClearData = onClearResearch
+            onClearData = onClearResearch,
+            onOpenSurvey = {
+                showResearchPanel = false
+                onOpenSurvey()
+            }
         )
     }
 

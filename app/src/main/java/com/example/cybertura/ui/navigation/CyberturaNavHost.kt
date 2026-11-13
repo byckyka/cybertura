@@ -296,7 +296,8 @@ fun CyberturaNavHost(
                 onClearResearch = {
                     badgesViewModel.clearResearchData()
                     Toast.makeText(context, "Datos del piloto borrados", Toast.LENGTH_SHORT).show()
-                }
+                },
+                onOpenSurvey = { navController.navigate(Screen.Survey.route) }
             )
         }
 
@@ -308,7 +309,27 @@ fun CyberturaNavHost(
                 userProgress = userProgress,
                 onShowCredits = { navController.navigate(Screen.Credits.route) },
                 onFinish = {
-                    // Vuelve a Home y borra el historial hasta allí
+                    val status = researchLogger?.status?.value
+                    if (status != null && status.isRecording && !status.surveyDone) {
+                        // En el piloto, la aventura termina con la encuesta de percepción
+                        navController.navigate(Screen.Survey.route) {
+                            popUpTo(Screen.Home.route) { inclusive = false }
+                        }
+                    } else {
+                        // Vuelve a Home y borra el historial hasta allí
+                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                    }
+                }
+            )
+        }
+
+        // ── Encuesta de percepción (modo investigador) ────────────────────────
+        composable(Screen.Survey.route) {
+            val context = LocalContext.current
+            SurveyScreen(
+                onSubmit = { answers ->
+                    researchLogger?.saveSurvey(answers)
+                    Toast.makeText(context, "¡Gracias por tus respuestas!", Toast.LENGTH_SHORT).show()
                     navController.popBackStack(Screen.Home.route, inclusive = false)
                 }
             )

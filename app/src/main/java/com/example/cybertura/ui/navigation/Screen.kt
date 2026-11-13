@@ -8,6 +8,8 @@ sealed class Screen(val route: String) {
     object Badges : Screen("badges")
     object GameCompleted : Screen("game_completed")
     object Credits : Screen("credits")
+    /** Encuesta de percepción del piloto (solo con una sesión de investigación abierta). */
+    object Survey : Screen("survey")
 
     object ModuleDetail : Screen("module/{moduleId}") {
         fun createRoute(moduleId: String) = "module/$moduleId"

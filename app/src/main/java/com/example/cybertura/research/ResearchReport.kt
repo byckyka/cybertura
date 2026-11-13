@@ -122,7 +122,7 @@ object ResearchReport {
      * Una fila por participante y reto. Cuenta los intentos hasta el primero que lo completó
      * (si después lo repitió, esas repeticiones no se suman).
      */
-    fun build(rows: List<AttemptRow>): String {
+    fun build(rows: List<AttemptRow>, surveys: List<SurveyRow> = emptyList()): String {
         // SimpleDateFormat no es seguro entre hilos: se crea uno por informe
         val day = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
         val sb = StringBuilder(BOM)
@@ -165,9 +165,34 @@ object ResearchReport {
             )
         }
 
+        appendSurveys(sb, surveys, day)
+
         sb.append("\r\n")
         GUIDE.forEach { sb.append(ResearchCsv.line(listOf(it))) }
         return sb.toString()
+    }
+
+    /**
+     * Encuesta de percepción: una fila por participante (si respondió más de una vez, la última).
+     * Debajo va el texto de cada pregunta, para leer las columnas P1, P2…
+     */
+    private fun appendSurveys(sb: StringBuilder, surveys: List<SurveyRow>, day: SimpleDateFormat) {
+        if (surveys.isEmpty()) return
+        val questions = ResearchSurvey.QUESTIONS
+        sb.append("\r\n")
+        sb.append(ResearchCsv.line(listOf("ENCUESTA DE PERCEPCIÓN (1 = nada … 5 = muchísimo; vacío = no respondió)")))
+        sb.append(ResearchCsv.line(listOf("Participante", "Fecha") + questions.indices.map { "P${it + 1}" }))
+        val latest = surveys.groupBy { it.sessionId }.values.map { it.last() }
+        for (survey in latest) {
+            val answers = ResearchSurvey.normalize(survey.answers)
+            sb.append(
+                ResearchCsv.line(
+                    listOf(survey.participant, day.format(Date(survey.sessionStartMs))) +
+                        answers.map { if (it == ResearchSurvey.NO_ANSWER) "" else it.toString() }
+                )
+            )
+        }
+        questions.forEachIndexed { i, question -> sb.append(ResearchCsv.line(listOf("P${i + 1}: $question"))) }
     }
 
     private fun minigameName(type: String): String = when (type) {

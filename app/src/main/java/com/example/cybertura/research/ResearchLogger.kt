@@ -23,7 +23,9 @@ data class ResearchStatus(
     val sessionStartMs: Long = 0L,
     val attemptsInSession: Int = 0,
     /** Participantes (sesiones) con datos guardados en el teléfono, contando la activa. */
-    val savedSessions: Int = 0
+    val savedSessions: Int = 0,
+    /** El participante de la sesión activa ya respondió la encuesta de percepción. */
+    val surveyDone: Boolean = false
 ) {
     val isRecording: Boolean get() = participant != null
 }
@@ -47,6 +49,7 @@ class ResearchLogger(
     private val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private val dir = File(appContext.filesDir, DIR)
     private val attemptsFile = File(dir, "intentos_v2.csv")
+    private val surveyFile = File(dir, "encuesta.csv")
 
     /**
      * Todo lo que toca el archivo va en un solo hilo, en orden y sin bloquear la interfaz:
@@ -166,11 +169,37 @@ class ResearchLogger(
         }
     }
 
+    // ── Encuesta de percepción ───────────────────────────────────────────────
+
+    /** Guarda las respuestas del participante de la sesión activa; no hace nada sin sesión. */
+    fun saveSurvey(answers: List<Int>) {
+        val sessionId = prefs.getString(K_SESSION, null) ?: return
+        val line = SurveyRow(
+            sessionId = sessionId,
+            participant = prefs.getString(K_CODE, "") ?: "",
+            sessionStartMs = prefs.getLong(K_START, 0L),
+            answers = ResearchSurvey.normalize(answers)
+        ).toCsvLine()
+        io.execute {
+            runCatching { surveyFile.appendText(line, Charsets.UTF_8) }
+                .onFailure { Log.e(TAG, "No se pudo guardar la encuesta", it) }
+            publishStatus()
+        }
+    }
+
+    private fun readSurveysFromDisk(): List<SurveyRow> {
+        if (!surveyFile.exists()) return emptyList()
+        return surveyFile.readLines(Charsets.UTF_8).mapNotNull { SurveyRow.parse(it) }
+    }
+
     // ── Exportar y borrar ────────────────────────────────────────────────────
 
     private fun exportName() = "cybertura_resultados_${fileStamp(System.currentTimeMillis())}.csv"
 
-    private fun buildReport(): ByteArray = ResearchReport.build(readRows()).toByteArray(Charsets.UTF_8)
+    private fun buildReport(): ByteArray {
+        val rows = readRows() // espera las escrituras pendientes, también las de la encuesta
+        return ResearchReport.build(rows, readSurveysFromDisk()).toByteArray(Charsets.UTF_8)
+    }
 
     /** Guarda el CSV en una carpeta elegida por el investigador (ej. Descargas). No llamar en el hilo principal. */
     fun exportToFolder(resolver: ContentResolver, treeUri: Uri): Boolean = runCatching {
@@ -207,6 +236,7 @@ class ResearchLogger(
         prefs.edit().clear().apply()
         io.execute {
             attemptsFile.delete()
+            surveyFile.delete()
             File(appContext.cacheDir, "export").deleteRecursively()
             publishStatus()
         }
@@ -230,11 +260,13 @@ class ResearchLogger(
     private fun publishStatus() {
         val sessionId = prefs.getString(K_SESSION, null)
         val rows = runCatching { readRowsFromDisk() }.getOrDefault(emptyList())
+        val surveys = runCatching { readSurveysFromDisk() }.getOrDefault(emptyList())
         _status.value = ResearchStatus(
             participant = prefs.getString(K_CODE, null),
             sessionStartMs = prefs.getLong(K_START, 0L),
             attemptsInSession = rows.count { it.sessionId == sessionId },
-            savedSessions = (rows.map { it.sessionId }.toSet() + listOfNotNull(sessionId)).size
+            savedSessions = (rows.map { it.sessionId }.toSet() + listOfNotNull(sessionId)).size,
+            surveyDone = sessionId != null && surveys.any { it.sessionId == sessionId }
         )
     }
 
