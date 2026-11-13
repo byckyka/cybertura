@@ -1,6 +1,7 @@
 package com.example.cybertura
 
 import android.app.Application
+import com.example.cybertura.audio.Narrator
 import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.local.DataStoreManager
 import com.example.cybertura.data.local.JsonDataLoader
@@ -16,6 +17,10 @@ class CyberturaApplication : Application() {
     lateinit var researchLogger: ResearchLogger
         private set
 
+    /** Voz que lee los textos a quien lo pida (puede no estar disponible en el teléfono). */
+    lateinit var narrator: Narrator
+        private set
+
     override fun onCreate() {
         super.onCreate()
         val jsonDataLoader = JsonDataLoader(this)
@@ -23,5 +28,6 @@ class CyberturaApplication : Application() {
         repository = CyberRepository(jsonDataLoader, dataStoreManager)
         researchLogger = ResearchLogger(this)
         SoundManager.init(this)
+        narrator = Narrator(this)
     }
 }

@@ -121,7 +121,7 @@ fun BadgesScreen(
                                 letterSpacing = 1.5.sp
                             )
                             Text(
-                                text = "${uiState.unlockedCount} de ${uiState.badges.size} Desbloqueados · ★ ${uiState.totalStars} de ${uiState.maxStars}",
+                                text = "${uiState.unlockedCount} de ${uiState.badges.size} Desbloqueados",
                                 fontSize = 12.sp,
                                 color = TextSecondary,
                                 fontWeight = FontWeight.Bold
@@ -268,6 +268,20 @@ fun BadgesScreen(
                                             )
                                             Text(
                                                 text = "Trofeos",
+                                                fontSize = 12.sp,
+                                                color = TextMuted,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                text = "★ ${uiState.totalStars}/${uiState.maxStars}",
+                                                fontSize = 20.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = NeonGold
+                                            )
+                                            Text(
+                                                text = "Estrellas",
                                                 fontSize = 12.sp,
                                                 color = TextMuted,
                                                 fontWeight = FontWeight.Bold

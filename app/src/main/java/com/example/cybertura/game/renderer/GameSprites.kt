@@ -30,7 +30,15 @@ class GameSprites private constructor(resources: Resources) {
         skullImg      = image(resources, R.drawable.tile_skull)
     )
 
-    val player: ImageBitmap = image(resources, R.drawable.thief_idle_1)
+    /** Sprites entre los que el jugador elige su personaje (ids de `PlayerCharacters`). */
+    private val players: Map<String, ImageBitmap> = mapOf(
+        "thief"     to image(resources, R.drawable.thief_idle_1),
+        "townsfolk" to image(resources, R.drawable.townsfolk_m_idle_1),
+        "butcher"   to image(resources, R.drawable.butcher_idle_1)
+    )
+
+    /** Sprite del personaje elegido; el de siempre si el id no existe o está vacío. */
+    fun playerFor(characterId: String?): ImageBitmap = players[characterId] ?: players.getValue("thief")
 
     val npcs: Map<String, ImageBitmap> = mapOf(
         "npc_passwords"  to image(resources, R.drawable.alchemist_idle_1),

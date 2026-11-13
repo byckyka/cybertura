@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import com.example.cybertura.audio.SoundManager
+import com.example.cybertura.ui.components.LocalNarrator
 import com.example.cybertura.ui.navigation.CyberturaNavHost
 import com.example.cybertura.ui.theme.CyberturaTheme
 
@@ -17,7 +19,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CyberturaTheme {
-                CyberturaNavHost(repository = app.repository, researchLogger = app.researchLogger)
+                CompositionLocalProvider(LocalNarrator provides app.narrator) {
+                    CyberturaNavHost(repository = app.repository, researchLogger = app.researchLogger)
+                }
             }
         }
     }
@@ -31,6 +35,7 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         super.onStop()
         SoundManager.onAppBackground()
+        (application as CyberturaApplication).narrator.stop()
         // El piloto mide el tiempo de juego: lo que pase con la app oculta no cuenta
         (application as CyberturaApplication).researchLogger.onAppBackground()
     }

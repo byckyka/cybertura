@@ -37,6 +37,7 @@ import com.example.cybertura.game.engine.MapIds
 import com.example.cybertura.game.engine.NpcData
 import com.example.cybertura.game.engine.NpcRegistry
 import com.example.cybertura.game.renderer.drawSprites
+import com.example.cybertura.ui.components.NarrateButton
 import com.example.cybertura.game.renderer.drawWorldMap
 import com.example.cybertura.ui.components.CyberTopBar
 import com.example.cybertura.ui.theme.*
@@ -59,7 +60,7 @@ fun GameWorldScreen(
     // --- Imágenes: se cargan una sola vez, no al volver de cada reto ---
     val sprites = remember { com.example.cybertura.game.renderer.GameSprites.get(context.resources) }
     val worldAssets = sprites.world
-    val playerSprite = sprites.player
+    val playerSprite = sprites.playerFor(userProgress.agentCharacter)
     val npcSprites = sprites.npcs
 
     // --- Bucle de juego: corre solo mientras esta pantalla está visible ---
@@ -444,8 +445,10 @@ fun PokemonDialogBox(
                         text = "[${npc.title}]",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextMuted
+                        color = TextMuted,
+                        modifier = Modifier.weight(1f)
                     )
+                    NarrateButton(text = dialogText)
                 }
 
                 // Texto del diálogo (máquina de escribir)

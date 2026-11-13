@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cybertura.data.model.CyberModule
 import com.example.cybertura.data.model.LessonCard
+import com.example.cybertura.ui.components.NarrateButton
 import com.example.cybertura.ui.theme.DungeonBlack
 import com.example.cybertura.ui.theme.DungeonBorder
 import com.example.cybertura.ui.theme.DungeonCard
@@ -219,6 +220,7 @@ private fun LessonCardView(card: LessonCard, accent: Color) {
                 lineHeight = 27.sp,
                 textAlign = TextAlign.Center
             )
+            NarrateButton(text = "${card.title}. ${card.text}", tint = accent)
             Text(text = "Lee con calma: te servirá en el reto.", color = TextMuted, fontSize = 13.sp)
         }
     }

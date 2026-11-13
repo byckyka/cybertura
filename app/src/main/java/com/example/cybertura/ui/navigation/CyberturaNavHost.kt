@@ -70,12 +70,29 @@ fun CyberturaNavHost(
     ) {
         // ── Tutorial (solo primera vez) ───────────────────────────────────────
         composable(Screen.Tutorial.route) {
-            val scope = rememberCoroutineScope()
             TutorialScreen(
                 onTutorialFinished = {
-                    scope.launch { repository.markTutorialSeen() }
-                    navController.navigate(Screen.Home.route) {
+                    navController.navigate(Screen.Profile.route) {
                         popUpTo(Screen.Tutorial.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ── Alias y personaje (cierra la bienvenida) ──────────────────────────
+        composable(Screen.Profile.route) {
+            val scope = rememberCoroutineScope()
+            ProfileSetupScreen(
+                onDone = { name, characterId ->
+                    scope.launch {
+                        // Se guarda antes de entrar al mundo para que ya se vea el personaje elegido.
+                        // El tutorial se marca como visto aquí: si la app se cierra antes, se repite
+                        // la bienvenida completa en vez de entrar sin perfil.
+                        repository.setAgentProfile(name, characterId)
+                        repository.markTutorialSeen()
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Profile.route) { inclusive = true }
+                        }
                     }
                 }
             )

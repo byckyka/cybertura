@@ -32,6 +32,7 @@ import com.example.cybertura.audio.SoundManager
 import com.example.cybertura.data.model.Option
 import com.example.cybertura.ui.components.FeedbackModal
 import com.example.cybertura.ui.components.FloatingParticles
+import com.example.cybertura.ui.components.NarrateButton
 import com.example.cybertura.ui.theme.*
 import com.example.cybertura.ui.viewmodel.GameplayUiState
 
@@ -303,7 +304,18 @@ fun GameplayScreen(
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Black,
                                     color = accent,
-                                    letterSpacing = 1.5.sp
+                                    letterSpacing = 1.5.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                // Lee la situación, el desafío y, en las preguntas, las opciones en pantalla
+                                NarrateButton(
+                                    text = buildString {
+                                        append(challenge.storyContext).append(" ").append(challenge.question)
+                                        uiState.options.forEachIndexed { i, option ->
+                                            append(" Opción ").append('A' + i).append(": ").append(option.text).append(".")
+                                        }
+                                    },
+                                    tint = accent
                                 )
                             }
                             Text(
