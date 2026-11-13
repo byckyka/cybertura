@@ -113,6 +113,18 @@ fun CyberturaNavHost(
             )
             val userProgress by repository.userProgress.collectAsState(initial = UserProgress())
 
+            // En el piloto nadie empieza a jugar sin el cuestionario inicial: si la app se cerró
+            // antes de responderlo, al volver al mundo se abre otra vez.
+            val researchStatus = researchLogger?.status?.collectAsState()?.value
+            val needsPreTest = researchStatus != null && researchStatus.isRecording && !researchStatus.preTestDone
+            LaunchedEffect(needsPreTest) {
+                if (needsPreTest) {
+                    navController.navigate(Screen.KnowledgeTest.createRoute(TestMoment.PRE.code)) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
+            }
+
             GameWorldScreen(
                 viewModel = gameWorldViewModel,
                 userProgress = userProgress,

@@ -15,6 +15,7 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /** Estado del modo investigador que se muestra en el panel. */
 data class ResearchStatus(
@@ -60,6 +61,12 @@ class ResearchLogger(
      * las escrituras, el recuento que muestra el panel y el borrado.
      */
     private val io = Executors.newSingleThreadExecutor()
+
+    /**
+     * Cuestionarios y encuesta respondidos en esta ejecución, como "sesión|qué". Un recuento que
+     * ya estaba en cola no debe desmarcarlos antes de que su escritura llegue al archivo.
+     */
+    private val answeredNow = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     private val _status = MutableStateFlow(ResearchStatus())
     val status: StateFlow<ResearchStatus> = _status.asStateFlow()
@@ -184,6 +191,8 @@ class ResearchLogger(
             sessionStartMs = prefs.getLong(K_START, 0L),
             answers = ResearchSurvey.normalize(answers)
         ).toCsvLine()
+        answeredNow += "$sessionId|encuesta"
+        _status.update { it.copy(surveyDone = true) }
         io.execute {
             runCatching { surveyFile.appendText(line, Charsets.UTF_8) }
                 .onFailure { Log.e(TAG, "No se pudo guardar la encuesta", it) }
@@ -203,6 +212,12 @@ class ResearchLogger(
             moment = moment,
             answers = KnowledgeTest.normalize(answers)
         ).toCsvLine()
+        // Se marca de inmediato: la pantalla siguiente ya debe verlo como respondido,
+        // sin esperar a que termine la escritura.
+        answeredNow += "$sessionId|${moment.code}"
+        _status.update {
+            if (moment == TestMoment.PRE) it.copy(preTestDone = true) else it.copy(postTestDone = true)
+        }
         io.execute {
             runCatching { knowledgeFile.appendText(line, Charsets.UTF_8) }
                 .onFailure { Log.e(TAG, "No se pudo guardar el cuestionario", it) }
@@ -266,6 +281,7 @@ class ResearchLogger(
             attemptsFile.delete()
             surveyFile.delete()
             knowledgeFile.delete()
+            answeredNow.clear()
             File(appContext.cacheDir, "export").deleteRecursively()
             publishStatus()
         }
@@ -297,9 +313,10 @@ class ResearchLogger(
             sessionStartMs = prefs.getLong(K_START, 0L),
             attemptsInSession = rows.count { it.sessionId == sessionId },
             savedSessions = (rows.map { it.sessionId }.toSet() + listOfNotNull(sessionId)).size,
-            surveyDone = sessionId != null && surveys.any { it.sessionId == sessionId },
-            preTestDone = tests.any { it.moment == TestMoment.PRE },
-            postTestDone = tests.any { it.moment == TestMoment.POST }
+            surveyDone = sessionId != null &&
+                (surveys.any { it.sessionId == sessionId } || "$sessionId|encuesta" in answeredNow),
+            preTestDone = tests.any { it.moment == TestMoment.PRE } || "$sessionId|${TestMoment.PRE.code}" in answeredNow,
+            postTestDone = tests.any { it.moment == TestMoment.POST } || "$sessionId|${TestMoment.POST.code}" in answeredNow
         )
     }
 
