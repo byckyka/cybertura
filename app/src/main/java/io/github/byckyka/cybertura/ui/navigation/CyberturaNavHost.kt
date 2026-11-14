@@ -331,24 +331,7 @@ fun CyberturaNavHost(
             GameCompletedScreen(
                 userProgress = userProgress,
                 onShowCredits = { navController.navigate(Screen.Credits.route) },
-                onFinish = {
-                    val status = researchLogger?.status?.value
-                    // En el piloto, la aventura termina con el cuestionario final y la encuesta
-                    val pilotStep = when {
-                        status == null || !status.isRecording -> null
-                        !status.postTestDone -> Screen.KnowledgeTest.createRoute(TestMoment.POST.code)
-                        !status.surveyDone -> Screen.Survey.route
-                        else -> null
-                    }
-                    if (pilotStep != null) {
-                        navController.navigate(pilotStep) {
-                            popUpTo(Screen.Home.route) { inclusive = false }
-                        }
-                    } else {
-                        // Vuelve a Home y borra el historial hasta allí
-                        navController.popBackStack(Screen.Home.route, inclusive = false)
-                    }
-                }
+                onFinish = { finishAdventure(navController, researchLogger) }
             )
         }
 
@@ -404,10 +387,33 @@ fun CyberturaNavHost(
                     if (fromBadges) {
                         navController.popBackStack()
                     } else {
-                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                        // Desde el final del juego: mismo cierre que "Volver al Mundo"
+                        finishAdventure(navController, researchLogger)
                     }
                 }
             )
         }
+    }
+}
+
+/**
+ * Cierra la aventura al salir de la pantalla final o de sus créditos. En el piloto (modo
+ * investigador grabando) lleva primero al cuestionario de después y a la encuesta si faltan;
+ * si no, vuelve al mundo y borra el historial hasta allí.
+ */
+private fun finishAdventure(navController: NavHostController, researchLogger: ResearchLogger?) {
+    val status = researchLogger?.status?.value
+    val pilotStep = when {
+        status == null || !status.isRecording -> null
+        !status.postTestDone -> Screen.KnowledgeTest.createRoute(TestMoment.POST.code)
+        !status.surveyDone -> Screen.Survey.route
+        else -> null
+    }
+    if (pilotStep != null) {
+        navController.navigate(pilotStep) {
+            popUpTo(Screen.Home.route) { inclusive = false }
+        }
+    } else {
+        navController.popBackStack(Screen.Home.route, inclusive = false)
     }
 }
