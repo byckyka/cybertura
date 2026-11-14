@@ -82,165 +82,237 @@ object ResearchCsv {
     }
 }
 
+/** Una pestaña del informe: encabezado y filas, tal como se ven en Excel o en Google Sheets. */
+data class ReportSheet(
+    val name: String,
+    val header: List<String>,
+    val rows: List<List<String>>
+) {
+    fun column(name: String): List<String> = header.indexOf(name).let { i -> rows.map { it[i] } }
+}
+
 /**
- * Arma el archivo que exporta el investigador: UN solo CSV legible (UTF-8 con BOM), con una fila
- * por participante y módulo y una guía al final que explica cada columna.
+ * Arma el informe que exporta el investigador, pensado para leerlo sin saber de código: varias
+ * pestañas (resumen por participante, retos, cuestionario, encuesta y una guía), con las
+ * preguntas completas en los encabezados y las respuestas en palabras.
+ *
+ * Las mismas pestañas se guardan como Excel ([XlsxWriter]) o se envían a Google Sheets. Cada fila
+ * de datos lleva al final el [SESSION_COLUMN], que Google Sheets usa para reemplazar (y no
+ * duplicar) las filas de una sesión cuando se envía otra vez.
  */
 object ResearchReport {
-    private const val BOM = "﻿"
+
+    const val SUMMARY = "Resumen"
+    const val CHALLENGES = "Retos"
+    const val KNOWLEDGE = "Conocimientos"
+    const val SURVEY = "Encuesta"
+    const val GUIDE_SHEET = "Guía"
+
+    /** Identifica la sesión de un participante; va al final de cada fila de datos. */
+    const val SESSION_COLUMN = "ID de sesión"
+
+    const val NOT_APPLICABLE = "no aplica"
 
     val HEADER = listOf(
         "Participante", "Fecha", "Módulo", "Jefe", "Tema", "Reto", "Resultado", "Intentos",
-        "Tiempo", "Tiempo (segundos)", "Aciertos", "Errores", "Ayudas", "Estrellas", "XP ganada"
+        "Tiempo", "Tiempo (segundos)", "Aciertos", "Errores", "Ayudas", "Estrellas", "XP ganada",
+        SESSION_COLUMN
     )
 
-    private val GUIDE = listOf(
-        "CÓMO LEER ESTE ARCHIVO",
-        "Cada fila es un participante en un reto. Cada módulo tiene dos retos: primero su minijuego y después",
-        "  una pregunta de situación real, que mide si aplica lo aprendido. Las filas van en el orden en que jugó.",
-        "Participante: código anónimo que puso el investigador (nunca el nombre del niño).",
-        "Fecha: día en que se abrió la sesión de ese participante.",
-        "Módulo: número del módulo en la aventura (1 a 8). Jefe: personaje que da el reto. Tema: título del módulo.",
-        "Reto: el minijuego del módulo o su pregunta de situación real.",
-        "Resultado: Completado si terminó el reto; Sin terminar si salió antes de acabarlo.",
-        "Intentos: veces que entró al reto hasta completarlo (si lo repitió después de completarlo no se cuenta).",
-        "Tiempo: suma de lo que duraron esos intentos, sin contar los ratos con la app en segundo plano o la pantalla apagada.",
-        "  Tiempo (segundos) es el mismo dato en número para sacar promedios.",
-        "Aciertos: decisiones correctas en todos esos intentos.",
-        "Errores: decisiones incorrectas en todos esos intentos.",
-        "  Deslizar: carta clasificada al revés. Detective: toque fuera de una pista.",
-        "  Chat de grupo: respuesta que no ayuda. Forja de llaves: llave débil o con trampa y respuestas incorrectas.",
-        "  Defiende el bosque: escudo perdido (tocar algo seguro o dejar pasar un virus).",
-        "  Situación real: opción incorrecta elegida antes de acertar (0 errores = acertó a la primera).",
-        "Ayudas: veces que tocó el botón 💡 Ayuda. Solo existe en el minijuego Detective (módulos 4 y 8);",
-        "  muestra una pista sobre lo que falta encontrar y cada ayuda resta como 2 errores en las estrellas. En los demás dice no aplica.",
-        "Estrellas: de 1 a 3, las del intento en que completó el minijuego. La pregunta no da estrellas (no aplica).",
-        "XP ganada: experiencia obtenida en ese reto (solo se gana la primera vez que se completa)."
+    val SUMMARY_HEADER = listOf(
+        "Participante", "Fecha", "Retos completados", "Tiempo jugando", "Tiempo (minutos)",
+        "Errores en total", "Cuestionario antes (aciertos de ${KnowledgeTest.QUESTIONS.size})",
+        "Cuestionario después (aciertos de ${KnowledgeTest.QUESTIONS.size})", "Mejora en el cuestionario",
+        "Encuesta: promedio (1 a 5)", SESSION_COLUMN
     )
+
+    const val CORRECT = "Acertó"
+    const val WRONG = "Falló"
+    const val DONT_KNOW = "No sabe"
+
+    private val GUIDE = listOf(
+        "Este archivo tiene los resultados del piloto de CyberTura. Ningún dato identifica al niño: cada participante aparece con el código anónimo que puso el investigador (por ejemplo P01).",
+        "",
+        "PESTAÑA RESUMEN: una fila por participante, con lo más importante.",
+        "• Retos completados: cuántos retos terminó (cada módulo tiene un minijuego y una pregunta).",
+        "• Tiempo jugando: suma del tiempo en los retos, sin contar los ratos con la app en segundo plano o la pantalla apagada.",
+        "• Cuestionario antes / después: respuestas correctas en el cuestionario de conocimientos al empezar y al terminar.",
+        "• Mejora en el cuestionario: aciertos de después menos aciertos de antes (positivo = mejoró). Vacío si falta alguno de los dos.",
+        "• Encuesta: promedio de las respuestas de la encuesta de satisfacción (1 = muy en desacuerdo, 5 = muy de acuerdo).",
+        "",
+        "PESTAÑA RETOS: una fila por participante y reto, en el orden en que jugó.",
+        "• Módulo: número del módulo en la aventura (1 a 8). Jefe: personaje que da el reto. Tema: título del módulo.",
+        "• Reto: el minijuego del módulo o su pregunta de situación real, que mide si aplica lo aprendido.",
+        "• Resultado: Completado si terminó el reto; Sin terminar si salió antes de acabarlo.",
+        "• Intentos: veces que entró al reto hasta completarlo (si lo repitió después de completarlo no se cuenta).",
+        "• Tiempo: suma de lo que duraron esos intentos. Tiempo (segundos) es el mismo dato en número para sacar promedios.",
+        "• Aciertos: decisiones correctas en todos esos intentos.",
+        "• Errores: decisiones incorrectas en todos esos intentos.",
+        "    Deslizar: carta clasificada al revés. Detective: toque fuera de una pista.",
+        "    Chat de grupo: respuesta que no ayuda. Forja de llaves: llave débil o con trampa y respuestas incorrectas.",
+        "    Defiende el bosque: escudo perdido (tocar algo seguro o dejar pasar un virus).",
+        "    Situación real: opción incorrecta elegida antes de acertar (0 errores = acertó a la primera).",
+        "• Ayudas: veces que tocó el botón 💡 Ayuda. Solo existe en el minijuego Detective (módulos 4 y 8); cada ayuda resta como 2 errores en las estrellas. En los demás dice \"$NOT_APPLICABLE\".",
+        "• Estrellas: de 1 a 3, las del intento en que completó el minijuego. La pregunta no da estrellas (\"$NOT_APPLICABLE\").",
+        "• XP ganada: experiencia obtenida en ese reto (solo se gana la primera vez que se completa).",
+        "",
+        "PESTAÑA CONOCIMIENTOS: el mismo cuestionario antes y después de jugar; una fila por participante y momento (si lo repitió, cuenta el último).",
+        "• Cada pregunta sale como $CORRECT, $WRONG, $DONT_KNOW (eligió \"No lo sé\") o vacío (no la respondió).",
+        "",
+        "PESTAÑA ENCUESTA: la encuesta de satisfacción del final; una fila por participante (si la repitió, cuenta la última).",
+        "• Cada frase se responde de 1 (muy en desacuerdo) a 5 (muy de acuerdo). Vacío = no respondió esa frase.",
+        "",
+        "La columna \"$SESSION_COLUMN\" es interna: distingue dos sesiones del mismo código y evita filas repetidas en Google Sheets.",
+        "",
+        "RESPUESTAS CORRECTAS DEL CUESTIONARIO:"
+    ) + KnowledgeTest.QUESTIONS.mapIndexed { i, q -> "${i + 1}. ${q.text} → ${q.options[q.correct - 1]}" }
+
+    /** Todas las pestañas del informe, en el orden en que se muestran. */
+    fun sheets(
+        rows: List<AttemptRow>,
+        surveys: List<SurveyRow> = emptyList(),
+        tests: List<KnowledgeRow> = emptyList()
+    ): List<ReportSheet> {
+        // SimpleDateFormat no es seguro entre hilos: se crea uno por informe
+        val day = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
+        val latestTests = latestTests(tests)
+        val latestSurveys = surveys.groupBy { it.sessionId }.values.map { it.last() }
+        return listOf(
+            summarySheet(rows, latestTests, latestSurveys, day),
+            challengesSheet(rows, day),
+            knowledgeSheet(latestTests, day),
+            surveySheet(latestSurveys, day),
+            ReportSheet(GUIDE_SHEET, listOf("Cómo leer este archivo"), GUIDE.map { listOf(it) })
+        )
+    }
 
     /**
      * Una fila por participante y reto. Cuenta los intentos hasta el primero que lo completó
      * (si después lo repitió, esas repeticiones no se suman).
      */
-    fun build(
-        rows: List<AttemptRow>,
-        surveys: List<SurveyRow> = emptyList(),
-        tests: List<KnowledgeRow> = emptyList()
-    ): String {
-        // SimpleDateFormat no es seguro entre hilos: se crea uno por informe
-        val day = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
-        val sb = StringBuilder(BOM)
-        sb.append(ResearchCsv.line(HEADER))
-
+    private fun challengeGroups(rows: List<AttemptRow>): List<List<AttemptRow>> =
         // groupBy respeta el orden de juego
-        val groups = rows.groupBy { Triple(it.sessionId, it.moduleId, it.challengeId) }
-        for ((_, all) in groups) {
+        rows.groupBy { Triple(it.sessionId, it.moduleId, it.challengeId) }.values.map { all ->
             val firstWin = all.indexOfFirst { it.completed }
-            val attempts = if (firstWin >= 0) all.subList(0, firstWin + 1) else all
+            if (firstWin >= 0) all.subList(0, firstWin + 1) else all
+        }
+
+    private fun challengesSheet(rows: List<AttemptRow>, day: SimpleDateFormat): ReportSheet {
+        val data = challengeGroups(rows).map { attempts ->
             val first = attempts.first()
+            val completed = attempts.last().completed
             val npc = NpcRegistry.npcs.firstOrNull { it.moduleId == first.moduleId }
             val seconds = attempts.sumOf { it.durationMs } / 1000
             val hasHelpButton = first.minigameType == Challenge.TYPE_SPOT_THE_CLUES
             val givesStars = first.minigameType != Challenge.TYPE_MULTIPLE_CHOICE
-            sb.append(
-                ResearchCsv.line(
-                    listOf(
-                        first.participant,
-                        day.format(Date(first.sessionStartMs)),
-                        npc?.questOrder?.toString() ?: "",
-                        npc?.name ?: "",
-                        first.moduleTitle,
-                        minigameName(first.minigameType),
-                        if (firstWin >= 0) "Completado" else "Sin terminar",
-                        attempts.size.toString(),
-                        readableTime(seconds),
-                        seconds.toString(),
-                        attempts.sumOf { it.hits }.toString(),
-                        attempts.sumOf { it.errors }.toString(),
-                        if (hasHelpButton) attempts.sumOf { it.hints }.toString() else "no aplica",
-                        when {
-                            !givesStars -> "no aplica"
-                            firstWin >= 0 -> attempts.last().stars.toString()
-                            else -> ""
-                        },
-                        attempts.sumOf { it.xp }.toString()
-                    )
-                )
+            listOf(
+                first.participant,
+                day.format(Date(first.sessionStartMs)),
+                npc?.questOrder?.toString() ?: "",
+                npc?.name ?: "",
+                first.moduleTitle,
+                minigameName(first.minigameType),
+                if (completed) "Completado" else "Sin terminar",
+                attempts.size.toString(),
+                readableTime(seconds),
+                seconds.toString(),
+                attempts.sumOf { it.hits }.toString(),
+                attempts.sumOf { it.errors }.toString(),
+                if (hasHelpButton) attempts.sumOf { it.hints }.toString() else NOT_APPLICABLE,
+                when {
+                    !givesStars -> NOT_APPLICABLE
+                    completed -> attempts.last().stars.toString()
+                    else -> ""
+                },
+                attempts.sumOf { it.xp }.toString(),
+                first.sessionId
             )
         }
-
-        appendKnowledgeTests(sb, tests, day)
-        appendSurveys(sb, surveys, day)
-
-        sb.append("\r\n")
-        GUIDE.forEach { sb.append(ResearchCsv.line(listOf(it))) }
-        return sb.toString()
+        return ReportSheet(CHALLENGES, HEADER, data)
     }
 
-    /**
-     * Cuestionario de conocimientos: una fila por participante y momento (antes / después de
-     * jugar); si lo respondió más de una vez en el mismo momento, cuenta la última. Cada pregunta
-     * sale como 1 (acertó), 0 (falló), NS (eligió "No lo sé") o vacío (no la respondió).
-     */
-    private fun appendKnowledgeTests(sb: StringBuilder, tests: List<KnowledgeRow>, day: SimpleDateFormat) {
-        if (tests.isEmpty()) return
-        val questions = KnowledgeTest.QUESTIONS
-        sb.append("\r\n")
-        sb.append(ResearchCsv.line(listOf("CUESTIONARIO DE CONOCIMIENTOS (1 = acertó; 0 = falló; NS = no lo sé; vacío = no respondió)")))
-        sb.append(
-            ResearchCsv.line(
-                listOf("Participante", "Fecha", "Momento", "Aciertos", "De") + questions.indices.map { "C${it + 1}" }
-            )
-        )
-        val latest = tests.groupBy { it.sessionId to it.moment }.values.map { it.last() }
+    /** Si un participante respondió más de una vez en el mismo momento, cuenta la última. */
+    private fun latestTests(tests: List<KnowledgeRow>): List<KnowledgeRow> =
+        tests.groupBy { it.sessionId to it.moment }.values.map { it.last() }
             .sortedWith(compareBy({ row -> tests.indexOfFirst { it.sessionId == row.sessionId } }, { it.moment.ordinal }))
-        for (test in latest) {
+
+    private fun knowledgeSheet(tests: List<KnowledgeRow>, day: SimpleDateFormat): ReportSheet {
+        val questions = KnowledgeTest.QUESTIONS
+        val header = listOf("Participante", "Fecha", "Momento", "Aciertos", "De") +
+            questions.mapIndexed { i, q -> "${i + 1}. ${q.text}" } + SESSION_COLUMN
+        val data = tests.map { test ->
             val answers = KnowledgeTest.normalize(test.answers)
-            sb.append(
-                ResearchCsv.line(
-                    listOf(
-                        test.participant,
-                        day.format(Date(test.sessionStartMs)),
-                        test.moment.label,
-                        KnowledgeTest.score(answers).toString(),
-                        questions.size.toString()
-                    ) + answers.mapIndexed { i, answer ->
-                        when {
-                            answer == KnowledgeTest.NO_ANSWER -> ""
-                            answer == KnowledgeTest.dontKnow(i) -> "NS"
-                            KnowledgeTest.isCorrect(i, answer) -> "1"
-                            else -> "0"
-                        }
-                    }
-                )
-            )
+            listOf(
+                test.participant,
+                day.format(Date(test.sessionStartMs)),
+                test.moment.label,
+                KnowledgeTest.score(answers).toString(),
+                questions.size.toString()
+            ) + answers.mapIndexed { i, answer ->
+                when {
+                    answer == KnowledgeTest.NO_ANSWER -> ""
+                    answer == KnowledgeTest.dontKnow(i) -> DONT_KNOW
+                    KnowledgeTest.isCorrect(i, answer) -> CORRECT
+                    else -> WRONG
+                }
+            } + test.sessionId
         }
-        questions.forEachIndexed { i, q ->
-            sb.append(ResearchCsv.line(listOf("C${i + 1}: ${q.text} Respuesta correcta: ${q.options[q.correct - 1]}")))
-        }
+        return ReportSheet(KNOWLEDGE, header, data)
     }
 
-    /**
-     * Encuesta de percepción: una fila por participante (si respondió más de una vez, la última).
-     * Debajo va el texto de cada pregunta, para leer las columnas P1, P2…
-     */
-    private fun appendSurveys(sb: StringBuilder, surveys: List<SurveyRow>, day: SimpleDateFormat) {
-        if (surveys.isEmpty()) return
-        val questions = ResearchSurvey.QUESTIONS
-        sb.append("\r\n")
-        sb.append(ResearchCsv.line(listOf("ENCUESTA DE SATISFACCIÓN (1 = muy en desacuerdo … 5 = muy de acuerdo; vacío = no respondió)")))
-        sb.append(ResearchCsv.line(listOf("Participante", "Fecha") + questions.indices.map { "P${it + 1}" }))
-        val latest = surveys.groupBy { it.sessionId }.values.map { it.last() }
-        for (survey in latest) {
+    private fun surveySheet(surveys: List<SurveyRow>, day: SimpleDateFormat): ReportSheet {
+        val header = listOf("Participante", "Fecha") + ResearchSurvey.QUESTIONS + "Promedio" + SESSION_COLUMN
+        val data = surveys.map { survey ->
             val answers = ResearchSurvey.normalize(survey.answers)
-            sb.append(
-                ResearchCsv.line(
-                    listOf(survey.participant, day.format(Date(survey.sessionStartMs))) +
-                        answers.map { if (it == ResearchSurvey.NO_ANSWER) "" else it.toString() }
-                )
+            listOf(survey.participant, day.format(Date(survey.sessionStartMs))) +
+                answers.map { if (it == ResearchSurvey.NO_ANSWER) "" else it.toString() } +
+                surveyAverage(answers) + survey.sessionId
+        }
+        return ReportSheet(SURVEY, header, data)
+    }
+
+    /** Una fila por sesión de participante, en el orden en que aparecieron. */
+    private fun summarySheet(
+        rows: List<AttemptRow>,
+        tests: List<KnowledgeRow>,
+        surveys: List<SurveyRow>,
+        day: SimpleDateFormat
+    ): ReportSheet {
+        val groups = challengeGroups(rows)
+        val sessions = LinkedHashMap<String, Pair<String, Long>>()
+        rows.forEach { sessions.putIfAbsent(it.sessionId, it.participant to it.sessionStartMs) }
+        tests.forEach { sessions.putIfAbsent(it.sessionId, it.participant to it.sessionStartMs) }
+        surveys.forEach { sessions.putIfAbsent(it.sessionId, it.participant to it.sessionStartMs) }
+
+        val data = sessions.map { (sessionId, info) ->
+            val mine = groups.filter { it.first().sessionId == sessionId }
+            val seconds = mine.sumOf { g -> g.sumOf { it.durationMs } } / 1000
+            val pre = tests.firstOrNull { it.sessionId == sessionId && it.moment == TestMoment.PRE }
+                ?.let { KnowledgeTest.score(it.answers) }
+            val post = tests.firstOrNull { it.sessionId == sessionId && it.moment == TestMoment.POST }
+                ?.let { KnowledgeTest.score(it.answers) }
+            val survey = surveys.firstOrNull { it.sessionId == sessionId }
+            listOf(
+                info.first,
+                day.format(Date(info.second)),
+                mine.count { it.last().completed }.toString(),
+                readableTime(seconds),
+                String.format(Locale.ROOT, "%.1f", seconds / 60.0),
+                mine.sumOf { g -> g.sumOf { it.errors } }.toString(),
+                pre?.toString() ?: "",
+                post?.toString() ?: "",
+                if (pre != null && post != null) (post - pre).toString() else "",
+                survey?.let { surveyAverage(ResearchSurvey.normalize(it.answers)) } ?: "",
+                sessionId
             )
         }
-        questions.forEachIndexed { i, question -> sb.append(ResearchCsv.line(listOf("P${i + 1}: $question"))) }
+        return ReportSheet(SUMMARY, SUMMARY_HEADER, data)
+    }
+
+    /** Promedio de las frases respondidas, con un decimal; vacío si no respondió ninguna. */
+    private fun surveyAverage(answers: List<Int>): String {
+        val answered = answers.filter { it != ResearchSurvey.NO_ANSWER }
+        return if (answered.isEmpty()) "" else String.format(Locale.ROOT, "%.1f", answered.average())
     }
 
     private fun minigameName(type: String): String = when (type) {

@@ -37,14 +37,11 @@ class ResearchReportTest {
         challengeId = challenge
     )
 
-    /** Filas de datos del informe (sin encabezado ni guía), ya separadas en columnas. */
-    private fun dataRows(rows: List<AttemptRow>): List<List<String>> =
-        ResearchReport.build(rows)
-            .removePrefix("﻿")
-            .split("\r\n")
-            .drop(1)
-            .takeWhile { it.isNotBlank() }
-            .map { ResearchCsv.parseLine(it) }
+    private fun sheet(rows: List<AttemptRow>, name: String) =
+        ResearchReport.sheets(rows).first { it.name == name }
+
+    /** Filas de la pestaña de retos, ya separadas en columnas. */
+    private fun dataRows(rows: List<AttemptRow>): List<List<String>> = sheet(rows, ResearchReport.CHALLENGES).rows
 
     private fun List<String>.col(name: String) = this[ResearchReport.HEADER.indexOf(name)]
 
@@ -193,15 +190,40 @@ class ResearchReportTest {
     }
 
     @Test
-    fun el_archivo_abre_en_excel_y_trae_la_guia() {
-        val report = ResearchReport.build(listOf(attempt()))
-        assertTrue("Debe empezar con BOM para que Excel lea las tildes", report.startsWith("﻿"))
-        assertTrue(report.contains("CÓMO LEER ESTE ARCHIVO"))
-        assertEquals(ResearchReport.HEADER, ResearchCsv.parseLine(report.removePrefix("﻿").substringBefore("\r\n")))
+    fun el_informe_trae_sus_pestanas_y_la_guia() {
+        val sheets = ResearchReport.sheets(listOf(attempt()))
+        assertEquals(
+            listOf(ResearchReport.SUMMARY, ResearchReport.CHALLENGES, ResearchReport.KNOWLEDGE, ResearchReport.SURVEY, ResearchReport.GUIDE_SHEET),
+            sheets.map { it.name }
+        )
+        assertEquals(ResearchReport.HEADER, sheets[1].header)
+        assertTrue(sheets.last().rows.isNotEmpty())
+        // Toda pestaña de datos termina con la sesión, para que Google Sheets no duplique filas
+        sheets.dropLast(1).forEach { assertEquals(ResearchReport.SESSION_COLUMN, it.header.last()) }
+        sheets.forEach { s -> s.rows.forEach { assertEquals(s.header.size, it.size) } }
     }
 
     @Test
-    fun sin_datos_el_informe_solo_trae_encabezado_y_guia() {
-        assertTrue(dataRows(emptyList()).isEmpty())
+    fun sin_datos_las_pestanas_quedan_vacias_salvo_la_guia() {
+        val sheets = ResearchReport.sheets(emptyList())
+        assertTrue(sheets.dropLast(1).all { it.rows.isEmpty() })
+    }
+
+    @Test
+    fun el_resumen_trae_una_fila_por_participante() {
+        val other = NpcRegistry.questNpcs[1].moduleId!!
+        val summary = sheet(
+            listOf(
+                attempt(session = "P01-20261113-0900", seconds = 90, errors = 2),
+                attempt(session = "P01-20261113-0900", module = other, seconds = 30, completed = false, errors = 1),
+                attempt(session = "P02-20261113-1000")
+            ),
+            ResearchReport.SUMMARY
+        )
+        assertEquals(listOf("P01", "P02"), summary.column("Participante"))
+        assertEquals(listOf("1", "1"), summary.column("Retos completados"))
+        assertEquals("2 min 0 s", summary.column("Tiempo jugando")[0])
+        assertEquals("2.0", summary.column("Tiempo (minutos)")[0])
+        assertEquals("3", summary.column("Errores en total")[0])
     }
 }

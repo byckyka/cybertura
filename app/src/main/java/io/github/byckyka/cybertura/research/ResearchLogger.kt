@@ -7,6 +7,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
 import androidx.core.content.FileProvider
+import io.github.byckyka.cybertura.BuildConfig
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -39,7 +40,7 @@ data class ResearchStatus(
  *
  * Solo registra mientras hay una sesión activa, que el investigador abre con un código de
  * participante (ej. "P01"). No guarda nombres, ubicación ni identificadores del teléfono, y nada
- * sale del dispositivo hasta que el investigador lo exporta.
+ * sale del dispositivo hasta que el investigador lo exporta o lo envía a su hoja de Google.
  *
  * Internamente guarda una línea por intento de minijuego ([AttemptRow]). Al exportar se genera
  * el informe de [ResearchReport].
@@ -237,26 +238,38 @@ class ResearchLogger(
 
     // ── Exportar y borrar ────────────────────────────────────────────────────
 
-    private fun exportName() = "cybertura_resultados_${fileStamp(System.currentTimeMillis())}.csv"
+    private fun exportName() = "cybertura_resultados_${fileStamp(System.currentTimeMillis())}.xlsx"
 
-    private fun buildReport(): ByteArray {
+    /** Pestañas del informe con todo lo guardado. Espera las escrituras pendientes. */
+    private fun buildSheets(): List<ReportSheet> {
         val rows = readRows() // espera las escrituras pendientes, también las de la encuesta
-        return ResearchReport.build(rows, readSurveysFromDisk(), readKnowledgeFromDisk()).toByteArray(Charsets.UTF_8)
+        return ResearchReport.sheets(rows, readSurveysFromDisk(), readKnowledgeFromDisk())
     }
 
-    /** Guarda el CSV en una carpeta elegida por el investigador (ej. Descargas). No llamar en el hilo principal. */
+    /** Guarda el Excel en una carpeta elegida por el investigador (ej. Descargas). No llamar en el hilo principal. */
     fun exportToFolder(resolver: ContentResolver, treeUri: Uri): Boolean = runCatching {
         val dirUri = DocumentsContract.buildDocumentUriUsingTree(
             treeUri, DocumentsContract.getTreeDocumentId(treeUri)
         )
-        val fileUri = DocumentsContract.createDocument(resolver, dirUri, "text/csv", exportName())
+        val fileUri = DocumentsContract.createDocument(resolver, dirUri, XlsxWriter.MIME, exportName())
             ?: return false
-        resolver.openOutputStream(fileUri)?.use { it.write(buildReport()) } ?: return false
+        val sheets = buildSheets()
+        resolver.openOutputStream(fileUri)?.use { XlsxWriter.write(sheets, it) } ?: return false
         true
     }.onFailure { Log.e(TAG, "No se pudo exportar", it) }.getOrDefault(false)
 
+    /** Hay una hoja de Google configurada al compilar (ver local.properties). */
+    val googleSheetsConfigured: Boolean
+        get() = BuildConfig.SHEETS_URL.isNotBlank()
+
+    /** Envía todo lo guardado a la hoja de Google del investigador. No llamar en el hilo principal. */
+    fun sendToGoogleSheets(): GoogleSheetsUpload.Result {
+        if (!googleSheetsConfigured) return GoogleSheetsUpload.Result.Failed("La hoja de Google no está configurada.")
+        return GoogleSheetsUpload.send(BuildConfig.SHEETS_URL, BuildConfig.SHEETS_TOKEN, buildSheets())
+    }
+
     /**
-     * Intent para enviar el CSV con el menú "Compartir" de Android (Drive, correo…).
+     * Intent para enviar el Excel con el menú "Compartir" de Android (WhatsApp, Drive, correo…).
      * No llamar en el hilo principal.
      */
     fun shareIntent(): Intent {
@@ -264,10 +277,12 @@ class ResearchLogger(
             deleteRecursively()
             mkdirs()
         }
-        val file = File(outDir, exportName()).apply { writeBytes(buildReport()) }
+        val file = File(outDir, exportName())
+        val sheets = buildSheets()
+        file.outputStream().use { XlsxWriter.write(sheets, it) }
         val uri = FileProvider.getUriForFile(appContext, "${appContext.packageName}.fileprovider", file)
         val send = Intent(Intent.ACTION_SEND).apply {
-            type = "text/csv"
+            type = XlsxWriter.MIME
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }

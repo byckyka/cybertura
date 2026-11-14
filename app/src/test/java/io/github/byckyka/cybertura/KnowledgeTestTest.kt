@@ -2,11 +2,9 @@ package io.github.byckyka.cybertura
 
 import io.github.byckyka.cybertura.research.KnowledgeRow
 import io.github.byckyka.cybertura.research.KnowledgeTest
-import io.github.byckyka.cybertura.research.ResearchCsv
 import io.github.byckyka.cybertura.research.ResearchReport
 import io.github.byckyka.cybertura.research.TestMoment
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,13 +19,11 @@ class KnowledgeTestTest {
     private fun row(session: String, moment: TestMoment, answers: List<Int>) =
         KnowledgeRow(session, session.substringBefore('-'), 1_800_000_000_000L, moment, answers)
 
-    /** Filas de la sección del cuestionario en el informe, sin título, encabezado ni leyenda. */
-    private fun testRows(tests: List<KnowledgeRow>): List<List<String>> {
-        val lines = ResearchReport.build(emptyList(), tests = tests).removePrefix("﻿").split("\r\n")
-        val start = lines.indexOfFirst { it.startsWith("Participante;Fecha;Momento") }
-        if (start < 0) return emptyList()
-        return lines.drop(start + 1).takeWhile { !it.startsWith("C1:") && it.isNotBlank() }.map { ResearchCsv.parseLine(it) }
-    }
+    private fun sheet(tests: List<KnowledgeRow>, name: String) =
+        ResearchReport.sheets(emptyList(), tests = tests).first { it.name == name }
+
+    /** Filas de la pestaña del cuestionario en el informe. */
+    private fun testRows(tests: List<KnowledgeRow>): List<List<String>> = sheet(tests, ResearchReport.KNOWLEDGE).rows
 
     // ── Contenido ────────────────────────────────────────────────────────────
 
@@ -101,7 +97,10 @@ class KnowledgeTestTest {
         val answers = listOf(questions[0].correct, wrongFirst.let { if (questions[1].correct == 1) 2 else 1 },
             KnowledgeTest.dontKnow(2), KnowledgeTest.NO_ANSWER) + allCorrect.drop(4)
         val row = testRows(listOf(row("P01-20261113-0900", TestMoment.PRE, answers))).single()
-        assertEquals(listOf("1", "0", "NS", ""), row.drop(5).take(4))
+        assertEquals(
+            listOf(ResearchReport.CORRECT, ResearchReport.WRONG, ResearchReport.DONT_KNOW, ""),
+            row.drop(5).take(4)
+        )
     }
 
     @Test
@@ -116,12 +115,28 @@ class KnowledgeTestTest {
     }
 
     @Test
-    fun el_informe_explica_cada_pregunta_y_omite_la_seccion_si_no_hubo_cuestionarios() {
-        val report = ResearchReport.build(emptyList(), tests = listOf(row("P01-20261113-0900", TestMoment.PRE, allCorrect)))
+    fun cada_pregunta_va_completa_en_el_encabezado_y_la_guia_trae_la_respuesta_correcta() {
+        val tests = listOf(row("P01-20261113-0900", TestMoment.PRE, allCorrect))
+        val header = sheet(tests, ResearchReport.KNOWLEDGE).header
+        val guide = sheet(tests, ResearchReport.GUIDE_SHEET).rows.joinToString("\n") { it.single() }
         questions.forEachIndexed { i, q ->
-            assertTrue(report.contains("C${i + 1}: ${q.text}"))
-            assertTrue(report.contains("Respuesta correcta: ${q.options[q.correct - 1]}"))
+            assertTrue(header.contains("${i + 1}. ${q.text}"))
+            assertTrue(guide.contains("${q.text} → ${q.options[q.correct - 1]}"))
         }
-        assertFalse(ResearchReport.build(emptyList()).contains("CUESTIONARIO DE CONOCIMIENTOS"))
+        assertTrue(testRows(emptyList()).isEmpty())
+    }
+
+    @Test
+    fun el_resumen_muestra_la_mejora_entre_antes_y_despues() {
+        val summary = sheet(
+            listOf(
+                row("P01-20261113-0900", TestMoment.PRE, allDontKnow),
+                row("P01-20261113-0900", TestMoment.POST, allCorrect),
+                row("P02-20261113-1000", TestMoment.PRE, allCorrect)
+            ),
+            ResearchReport.SUMMARY
+        )
+        val mejora = summary.header.indexOfFirst { it.startsWith("Mejora") }
+        assertEquals(listOf("8", ""), summary.rows.map { it[mejora] })
     }
 }

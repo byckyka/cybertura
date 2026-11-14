@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.byckyka.cybertura.data.model.CyberModule
 import io.github.byckyka.cybertura.data.model.UserProgress
 import io.github.byckyka.cybertura.data.repository.CyberRepository
+import io.github.byckyka.cybertura.research.GoogleSheetsUpload
 import io.github.byckyka.cybertura.research.ResearchLogger
 import io.github.byckyka.cybertura.research.ResearchStatus
 import kotlinx.coroutines.Dispatchers
@@ -101,7 +102,24 @@ class BadgesViewModel(
         logger.endSession()
     }
 
-    /** Guarda el CSV de resultados en la carpeta elegida; [onResult] dice si se pudo. */
+    /** Hay una hoja de Google configurada para recibir los resultados. */
+    val googleSheetsConfigured: Boolean get() = researchLogger?.googleSheetsConfigured == true
+
+    /** Envía los resultados a la hoja de Google; [onResult] recibe el mensaje para el investigador. */
+    fun sendToGoogleSheets(onResult: (String) -> Unit) {
+        val logger = researchLogger ?: return
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { logger.sendToGoogleSheets() }
+            onResult(
+                when (result) {
+                    is GoogleSheetsUpload.Result.Sent -> "Resultados enviados a la hoja de Google (${result.rows} filas)"
+                    is GoogleSheetsUpload.Result.Failed -> "No se pudo enviar: ${result.reason}"
+                }
+            )
+        }
+    }
+
+    /** Guarda el Excel de resultados en la carpeta elegida; [onResult] dice si se pudo. */
     fun exportToFolder(resolver: ContentResolver, treeUri: Uri, onResult: (Boolean) -> Unit) {
         val logger = researchLogger ?: return
         viewModelScope.launch {

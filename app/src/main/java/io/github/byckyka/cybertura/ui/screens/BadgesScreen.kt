@@ -50,6 +50,8 @@ fun BadgesScreen(
     onEndResearchSession: () -> Unit = {},
     onExportResearchToFolder: () -> Unit = {},
     onShareResearch: () -> Unit = {},
+    googleSheetsConfigured: Boolean = false,
+    onSendResearchToGoogleSheets: () -> Unit = {},
     onClearResearch: () -> Unit = {},
     onOpenSurvey: () -> Unit = {},
     onOpenFinalTest: () -> Unit = {}
@@ -326,6 +328,8 @@ fun BadgesScreen(
             onExportToFolder = onExportResearchToFolder,
             onShare = onShareResearch,
             onClearData = onClearResearch,
+            googleSheetsConfigured = googleSheetsConfigured,
+            onSendToGoogleSheets = onSendResearchToGoogleSheets,
             onOpenSurvey = {
                 showResearchPanel = false
                 onOpenSurvey()

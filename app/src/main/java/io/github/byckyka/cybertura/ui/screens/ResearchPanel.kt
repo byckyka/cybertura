@@ -69,6 +69,9 @@ fun ResearchPanelDialog(
     onExportToFolder: () -> Unit,
     onShare: () -> Unit,
     onClearData: () -> Unit,
+    /** Hay una hoja de Google configurada; si no, el botón de envío no se muestra. */
+    googleSheetsConfigured: Boolean = false,
+    onSendToGoogleSheets: () -> Unit = {},
     /** Abre la encuesta de percepción para el participante de la sesión activa. */
     onOpenSurvey: () -> Unit = {},
     /** Abre el cuestionario de conocimientos final (después de jugar). */
@@ -158,10 +161,19 @@ fun ResearchPanelDialog(
 
                 // Exportar
                 HorizontalDivider(color = DungeonBorder)
-                Text("Exportar resultados (un CSV para Excel)", color = NeonCyan, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                Text("Exportar resultados (archivo de Excel)", color = NeonCyan, fontWeight = FontWeight.Black, fontSize = 13.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = onExportToFolder, modifier = Modifier.weight(1f)) { Text("Guardar en carpeta") }
                     OutlinedButton(onClick = onShare, modifier = Modifier.weight(1f)) { Text("Compartir") }
+                }
+                if (googleSheetsConfigured) {
+                    OutlinedButton(onClick = onSendToGoogleSheets, modifier = Modifier.fillMaxWidth()) {
+                        Text("Enviar a Google Sheets")
+                    }
+                    Text(
+                        "Necesita internet. Si lo envías otra vez, se actualizan las filas sin repetirse.",
+                        color = TextSecondary, fontSize = 12.sp
+                    )
                 }
 
                 // Borrar

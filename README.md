@@ -35,7 +35,7 @@ Juego móvil educativo para Android que enseña conceptos básicos de **ciudadan
 - **Narración opcional**: un botón lee en voz alta las lecciones, los diálogos y los enunciados con la voz del propio teléfono (si tiene una en español).
 - **Audio**: música ambiente en bucle y efectos de pasos, entrada a casas, chat, acierto, error y módulo completado.
 - **Tutorial** en la primera ejecución.
-- **Modo investigador** oculto para la prueba piloto: registra cada intento de cada reto, aplica un cuestionario de conocimientos antes y después de jugar y una encuesta de percepción, y exporta todo en un CSV.
+- **Modo investigador** oculto para la prueba piloto: registra cada intento de cada reto, aplica un cuestionario de conocimientos antes y después de jugar y una encuesta de percepción, y exporta todo en un Excel con pestañas o lo envía a una hoja de Google Sheets.
 - **Funciona 100 % sin conexión**. No tiene cuentas, no usa red y no recoge datos personales.
 
 ## Módulos educativos
@@ -211,7 +211,7 @@ cd cybertura
 .\gradlew.bat installRelease
 ```
 
-La versión release se reduce y optimiza con R8 (`proguard-rules.pro` conserva las clases de `data.model` que lee Gson). Como la app no se publica en tiendas, se firma con la **clave debug** que Android Studio genera en cada PC; por eso compila en cualquier equipo sin configurar nada. Si se instala una versión firmada en otro PC sobre una ya instalada, Android pide desinstalar primero, y eso borra el progreso y los datos del piloto: **exporta el CSV antes**.
+La versión release se reduce y optimiza con R8 (`proguard-rules.pro` conserva las clases de `data.model` que lee Gson). Como la app no se publica en tiendas, se firma con la **clave debug** que Android Studio genera en cada PC; por eso compila en cualquier equipo sin configurar nada. Si se instala una versión firmada en otro PC sobre una ya instalada, Android pide desinstalar primero, y eso borra el progreso y los datos del piloto: **exporta los resultados antes**.
 
 En Android Studio se cambia entre debug y release en *Build → Select Build Variant*.
 
@@ -223,15 +223,16 @@ No hace falta configurar variables de entorno, claves ni servicios externos.
 .\gradlew.bat test                   # pruebas unitarias (JVM)
 ```
 
-Hay 117 pruebas unitarias, todas en la JVM (no necesitan teléfono):
+Hay 126 pruebas unitarias, todas en la JVM (no necesitan teléfono):
 
 | Archivo | Pruebas | Qué cubre |
 |---|---:|---|
 | `ContentValidationTest` | 15 | `cyber_content.json` y el mapa: 8 módulos y 2500 XP, lección y pregunta en cada módulo, una sola respuesta correcta, minijuegos ganables, portales y maestros alcanzables |
 | `MinigameRulesTest` | 25 | Reglas de los cinco minijuegos y de la pregunta: aciertos, errores, bloqueos y final |
 | `ArcadeWaveSimTest` | 13 | Simulación de una oleada del arcade |
-| `ResearchReportTest` | 14 | Datos del piloto: tiempo sin contar el segundo plano y armado del CSV |
-| `KnowledgeTestTest` | 9 | Cuestionario de conocimientos: puntaje, «No lo sé» y filas de antes y después |
+| `ResearchReportTest` | 15 | Datos del piloto: tiempo sin contar el segundo plano y pestañas del informe |
+| `ResearchExportTest` | 7 | Archivo de Excel (partes, números, texto escapado) y mensaje a Google Sheets |
+| `KnowledgeTestTest` | 10 | Cuestionario de conocimientos: puntaje, «No lo sé», filas de antes y después y mejora |
 | `ResearchSurveyTest` | 7 | Encuesta: nada marcado por defecto y lo no respondido sale vacío |
 | `ProfileAndNarrationTest` | 9 | Reglas del alias y texto que se le pasa a la voz |
 | `ProgressStoreTest` | 8 | Progreso guardado: puntos, medalla, mejor marca de estrellas y reinicio |
@@ -261,24 +262,50 @@ Herramienta oculta para la prueba piloto; los niños no la ven.
 2. Escribe el PIN **2026**.
 3. En *Nueva sesión*, escribe un **código de participante** (por ejemplo `P01`), nunca el nombre del niño, y pulsa *Iniciar sesión*. La aventura se reinicia desde el tutorial para que cada participante empiece de cero.
 4. Tras crear su perfil, el niño responde el **cuestionario de conocimientos** (8 preguntas, una por módulo, con la opción «No lo sé»; no muestra si acertó). Mientras la sesión está activa se registra cada intento de cada reto. Cuando completa la aventura responde el mismo cuestionario otra vez y después la **encuesta de percepción** (los 7 ítems de satisfacción del instrumento del proyecto, con escala de caritas y ninguna marcada de antemano); si no alcanzó a terminar, abre ambos desde el panel con *Abrir cuestionario final* y *Abrir encuesta del participante*. Al terminar, pulsa *Terminar sesión*.
-5. En *Exportar resultados*, elige **Guardar en carpeta** o **Compartir** (Drive, correo…). Se genera un solo archivo, `cybertura_resultados_<fecha>.csv`, que abre directo en Excel.
+5. En *Exportar resultados*, elige **Guardar en carpeta** o **Compartir** (WhatsApp, Drive, correo…). Se genera un archivo de Excel, `cybertura_resultados_<fecha>.xlsx`. Si configuraste una hoja de Google (ver abajo), aparece también **Enviar a Google Sheets**.
 
-El CSV tiene una fila por participante y reto (dos por módulo: el minijuego y la pregunta), con estas columnas: Participante, Fecha, Módulo, Jefe, Tema, Reto, Resultado, Intentos, Tiempo, Tiempo (segundos), Aciertos, Errores, Ayudas, Estrellas y XP ganada. En la pregunta, *Errores* son las opciones equivocadas elegidas antes de acertar (0 = acertó a la primera). *Tiempo* no cuenta los ratos con la app en segundo plano. *Ayudas* solo aplica al minijuego de detective (`SPOT_THE_CLUES`). Después vienen el cuestionario de conocimientos (una fila por participante y momento, con los aciertos y cada pregunta como 1, 0, NS o vacío) y las respuestas de la encuesta (columnas P1 a P7; vacío = no respondió) y, al final, una guía que explica cada columna.
+El Excel está pensado para leerlo sin saber de código. Tiene cinco pestañas:
+
+| Pestaña | Una fila por… | Qué trae |
+|---|---|---|
+| **Resumen** | participante | Retos completados, tiempo jugando, errores, aciertos del cuestionario antes y después, la mejora entre los dos y el promedio de la encuesta |
+| **Retos** | participante y reto (dos por módulo: minijuego y pregunta) | Módulo, Jefe, Tema, Reto, Resultado, Intentos, Tiempo, Aciertos, Errores, Ayudas, Estrellas y XP ganada |
+| **Conocimientos** | participante y momento (antes / después) | Aciertos y cada pregunta, con su texto completo en el encabezado, como *Acertó*, *Falló*, *No sabe* o vacío |
+| **Encuesta** | participante | Cada frase completa en el encabezado con su respuesta de 1 a 5, y el promedio |
+| **Guía** | — | Qué significa cada columna y las respuestas correctas del cuestionario |
+
+En la pregunta, *Errores* son las opciones equivocadas elegidas antes de acertar (0 = acertó a la primera). *Tiempo* no cuenta los ratos con la app en segundo plano. *Ayudas* solo aplica al minijuego de detective (`SPOT_THE_CLUES`). Los números se guardan como números, así que se pueden sacar promedios directamente.
 
 *Borrar todos los datos del piloto* elimina las sesiones del teléfono, así que conviene exportarlas antes.
+
+### Enviar los resultados a Google Sheets (opcional)
+
+Sirve para juntar en una sola hoja los resultados de varios teléfonos sin pasar archivos. Se configura una vez:
+
+1. Crea una hoja en Google Sheets y abre **Extensiones → Apps Script**.
+2. Pega el contenido de [`app/docs/google_sheets_script.gs`](app/docs/google_sheets_script.gs) y cambia `CLAVE` por una palabra secreta tuya.
+3. **Implementar → Nueva implementación → Aplicación web**, con *Ejecutar como: Yo* y *Quién tiene acceso: Cualquier persona*. Autoriza y copia la URL que termina en `/exec`.
+4. En `local.properties` (en la raíz del proyecto; no se sube a git) agrega:
+   ```properties
+   cybertura.sheets.url=https://script.google.com/macros/s/.../exec
+   cybertura.sheets.token=tu-palabra-secreta
+   ```
+5. Vuelve a compilar e instalar la app.
+
+Desde ese momento, en el panel aparece **Enviar a Google Sheets**. Envía todo lo guardado en el teléfono a las mismas cinco pestañas. Si se envía otra vez, o desde otro teléfono, las filas de cada sesión se reemplazan y no se repiten. Sin internet no se envía nada y los datos siguen en el teléfono. Sin esas dos líneas la app compila igual y el botón no aparece.
 
 ## Privacidad
 
 CyberTura está pensada para menores de edad:
 
-- No pide el permiso `INTERNET` ni ningún otro.
+- El único permiso es `INTERNET`, y solo lo usa el botón *Enviar a Google Sheets* del modo investigador. El juego funciona sin conexión y no envía nada por su cuenta.
 - No tiene cuentas, analítica ni SDK de terceros.
 - Guarda el progreso del juego en el propio dispositivo, con DataStore.
-- El alias del jugador es una sola palabra de hasta 12 letras o números (no cabe un nombre completo, un correo ni un teléfono), se queda en el teléfono y no aparece en el CSV del piloto.
+- El alias del jugador es una sola palabra de hasta 12 letras o números (no cabe un nombre completo, un correo ni un teléfono), se queda en el teléfono y no aparece en los resultados del piloto.
 - La narración usa la voz instalada en el teléfono; no envía el texto a ningún servicio.
 - La encuesta no tiene preguntas de texto libre.
-- El modo investigador guarda los intentos **solo en el teléfono**, identificados con un código (`P01`), sin nombres, ubicación ni identificadores del dispositivo. Nada sale del teléfono salvo que el investigador exporte el CSV.
-- Los CSV del piloto y los consentimientos firmados **no deben subirse a este repositorio**, porque es público.
+- El modo investigador guarda los intentos **solo en el teléfono**, identificados con un código (`P01`), sin nombres, ubicación ni identificadores del dispositivo. Nada sale del teléfono salvo que el investigador exporte el Excel o pulse *Enviar a Google Sheets*. En ese caso los datos (anónimos) quedan en la hoja de Google del investigador, y conviene mencionarlo en el consentimiento.
+- Los resultados del piloto, la URL y la clave de la hoja y los consentimientos firmados **no deben subirse a este repositorio**, porque es público.
 
 ## Documentación adicional
 

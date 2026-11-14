@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Solo para "Enviar a Google Sheets" en el modo investigador; el juego no usa internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".CyberturaApplication"
         android:allowBackup="true"
@@ -25,7 +28,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Para compartir los CSV del modo investigador sin pedir permisos de almacenamiento -->
+        <!-- Para compartir el Excel del modo investigador sin pedir permisos de almacenamiento -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

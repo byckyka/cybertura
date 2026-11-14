@@ -1,7 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Hoja de Google del investigador (opcional). Se lee de local.properties, que no se sube a git:
+//   cybertura.sheets.url=https://script.google.com/macros/s/.../exec
+//   cybertura.sheets.token=la-clave-que-pusiste-en-el-script
+// Sin estas líneas la app compila igual y el botón "Enviar a Google Sheets" no aparece.
+val localProps = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+fun localProp(key: String): String =
+    (localProps.getProperty(key) ?: "").trim().replace("\\", "\\\\").replace("\"", "\\\"")
 
 android {
     namespace = "io.github.byckyka.cybertura"
@@ -17,6 +29,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "SHEETS_URL", "\"${localProp("cybertura.sheets.url")}\"")
+        buildConfigField("String", "SHEETS_TOKEN", "\"${localProp("cybertura.sheets.token")}\"")
     }
 
     buildTypes {
@@ -35,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

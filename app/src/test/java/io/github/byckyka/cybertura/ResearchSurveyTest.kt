@@ -1,11 +1,9 @@
 package io.github.byckyka.cybertura
 
-import io.github.byckyka.cybertura.research.ResearchCsv
 import io.github.byckyka.cybertura.research.ResearchReport
 import io.github.byckyka.cybertura.research.ResearchSurvey
 import io.github.byckyka.cybertura.research.SurveyRow
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -18,13 +16,12 @@ class ResearchSurveyTest {
     private fun survey(session: String, vararg answers: Int) =
         SurveyRow(session, session.substringBefore('-'), 1_800_000_000_000L, answers.toList())
 
-    /** Filas de la sección de encuesta del informe, sin título, encabezado ni leyenda. */
-    private fun surveyRows(surveys: List<SurveyRow>): List<List<String>> {
-        val lines = ResearchReport.build(emptyList(), surveys).removePrefix("﻿").split("\r\n")
-        val start = lines.indexOfFirst { it.startsWith("Participante;Fecha;P1") }
-        if (start < 0) return emptyList()
-        return lines.drop(start + 1).takeWhile { !it.startsWith("P1:") && it.isNotBlank() }.map { ResearchCsv.parseLine(it) }
-    }
+    private fun surveySheet(surveys: List<SurveyRow>) =
+        ResearchReport.sheets(emptyList(), surveys).first { it.name == ResearchReport.SURVEY }
+
+    /** Respuestas de la pestaña de encuesta: participante, fecha y una columna por frase. */
+    private fun surveyRows(surveys: List<SurveyRow>): List<List<String>> =
+        surveySheet(surveys).rows.map { it.take(2 + questions) }
 
     @Test
     fun una_encuesta_sin_tocar_queda_toda_sin_respuesta() {
@@ -67,10 +64,12 @@ class ResearchSurveyTest {
     }
 
     @Test
-    fun el_informe_explica_cada_pregunta_y_omite_la_seccion_si_nadie_respondio() {
-        val withSurvey = ResearchReport.build(emptyList(), listOf(survey("P01-20261113-0900", 4, 4, 4, 4, 4, 4, 4)))
-        ResearchSurvey.QUESTIONS.forEachIndexed { i, q -> assertTrue(withSurvey.contains("P${i + 1}: $q")) }
-        assertFalse(ResearchReport.build(emptyList()).contains("ENCUESTA DE SATISFACCIÓN"))
+    fun cada_frase_va_completa_en_el_encabezado_con_su_promedio() {
+        val sheet = surveySheet(listOf(survey("P01-20261113-0900", 5, 4, 0, 3, 5, 4, 3)))
+        ResearchSurvey.QUESTIONS.forEach { q -> assertTrue(sheet.header.contains(q)) }
+        // Promedio de las 6 respondidas: 24 / 6
+        assertEquals(listOf("4.0"), sheet.column("Promedio"))
+        assertTrue(surveyRows(emptyList()).isEmpty())
     }
 
     @Test

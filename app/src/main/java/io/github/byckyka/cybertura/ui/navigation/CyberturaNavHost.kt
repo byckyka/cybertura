@@ -286,11 +286,11 @@ fun CyberturaNavHost(
             val uiState by badgesViewModel.uiState.collectAsState()
             val researchStatus by badgesViewModel.researchStatus.collectAsState()
             val context = LocalContext.current
-            // El investigador elige una carpeta (ej. Descargas) y ahí se guardan los CSV
+            // El investigador elige una carpeta (ej. Descargas) y ahí se guarda el Excel
             val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
                 if (uri != null) {
                     badgesViewModel.exportToFolder(context.contentResolver, uri) { ok ->
-                        val msg = if (ok) "Se guardó el archivo de resultados (CSV)" else "No se pudo guardar el archivo"
+                        val msg = if (ok) "Se guardó el archivo de resultados (Excel)" else "No se pudo guardar el archivo"
                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                     }
                 }
@@ -313,6 +313,11 @@ fun CyberturaNavHost(
                 onEndResearchSession = { badgesViewModel.endResearchSession() },
                 onExportResearchToFolder = { folderPicker.launch(null) },
                 onShareResearch = { badgesViewModel.buildShareIntent { context.startActivity(it) } },
+                googleSheetsConfigured = badgesViewModel.googleSheetsConfigured,
+                onSendResearchToGoogleSheets = {
+                    Toast.makeText(context, "Enviando a la hoja de Google…", Toast.LENGTH_SHORT).show()
+                    badgesViewModel.sendToGoogleSheets { msg -> Toast.makeText(context, msg, Toast.LENGTH_LONG).show() }
+                },
                 onClearResearch = {
                     badgesViewModel.clearResearchData()
                     Toast.makeText(context, "Datos del piloto borrados", Toast.LENGTH_SHORT).show()

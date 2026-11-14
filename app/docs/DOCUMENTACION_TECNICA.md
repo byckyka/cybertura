@@ -26,18 +26,21 @@ Un módulo ya superado se puede repasar hablando otra vez con su maestro (`NpcRe
 ### Datos del piloto
 
 - `ForegroundClock`: la duración de un intento solo suma el tiempo con la app en pantalla.
-- `ResearchReport`: el CSV tiene una fila por participante y reto (minijuego y pregunta). En la pregunta, «Errores» son las opciones equivocadas antes de acertar.
-- `KnowledgeTest`: cuestionario de conocimientos de 8 preguntas (una por módulo) que se responde antes y después de jugar; no muestra si la respuesta fue correcta y ofrece «No lo sé». En el CSV sale una fila por participante y momento.
-- `ResearchSurvey`: encuesta de satisfacción de 7 ítems (parte 1 del Anexo F del documento de grado) con escala de 1 a 5, sin respuesta marcada de antemano; lo no respondido se guarda como 0 y sale vacío en el CSV.
+- `ResearchReport`: arma el informe en cinco pestañas (Resumen, Retos, Conocimientos, Encuesta y Guía). En *Retos* hay una fila por participante y reto (minijuego y pregunta); en la pregunta, «Errores» son las opciones equivocadas antes de acertar. Cada fila de datos termina con el «ID de sesión».
+- `XlsxWriter`: escribe esas pestañas como `.xlsx` sin librerías externas (un ZIP con XML), con el encabezado fijo y los números como números.
+- `GoogleSheetsUpload`: envía las mismas pestañas en JSON a un Apps Script del investigador (`app/docs/google_sheets_script.gs`), que reemplaza las filas de cada sesión por su «ID de sesión» para no duplicarlas. La URL y la clave se leen de `local.properties` al compilar (`BuildConfig.SHEETS_URL` y `SHEETS_TOKEN`); sin ellas el botón no aparece.
+- `KnowledgeTest`: cuestionario de conocimientos de 8 preguntas (una por módulo) que se responde antes y después de jugar; no muestra si la respuesta fue correcta y ofrece «No lo sé». En el informe sale una fila por participante y momento.
+- `ResearchSurvey`: encuesta de satisfacción de 7 ítems (parte 1 del Anexo F del documento de grado) con escala de 1 a 5, sin respuesta marcada de antemano; lo no respondido se guarda como 0 y sale vacío en el informe.
+- Los datos se siguen guardando en el teléfono en archivos CSV internos; el Excel y el envío se arman a partir de ellos.
 - Todo lo que toca los archivos del piloto corre en un solo hilo de escritura, fuera del hilo principal.
 
 ### Pruebas
 
-117 pruebas unitarias en la JVM (antes 16). El detalle por archivo está en el `README.md`.
+126 pruebas unitarias en la JVM (antes 16). El detalle por archivo está en el `README.md`.
 
 ### Pendiente de verificar en un teléfono real
 
-Los módulos 2 a 8 y el arcade en pantalla, la voz de la narración, la fluidez del mundo y la exportación del CSV desde el selector de carpetas. En el emulador solo se recorrió el módulo 1.
+Los módulos 2 a 8 y el arcade en pantalla, la voz de la narración, la fluidez del mundo, la exportación del Excel desde el selector de carpetas y el envío a Google Sheets. En el emulador solo se recorrió el módulo 1.
 
 ---
 
