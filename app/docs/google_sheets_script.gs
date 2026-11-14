@@ -26,7 +26,8 @@ function doPost(e) {
   lock.waitLock(30000); // dos teléfonos enviando a la vez no se pisan
   try {
     const datos = JSON.parse(e.postData.contents);
-    if (datos.token !== CLAVE) return responder({ ok: false, error: 'La clave no coincide con la del script.' });
+    // Se compara como texto: así da igual escribir CLAVE = 1205 o CLAVE = '1205'
+    if (String(datos.token) !== String(CLAVE)) return responder({ ok: false, error: 'La clave no coincide con la del script.' });
     const libro = SpreadsheetApp.getActiveSpreadsheet();
     let filas = 0;
     datos.hojas.forEach(function (hoja) { filas += escribirHoja(libro, hoja); });
