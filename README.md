@@ -294,6 +294,17 @@ Sirve para juntar en una sola hoja los resultados de varios teléfonos sin pasar
 
 Desde ese momento, en el panel aparece **Enviar a Google Sheets**. Envía todo lo guardado en el teléfono a las mismas cinco pestañas. Si se envía otra vez, o desde otro teléfono, las filas de cada sesión se reemplazan y no se repiten. Sin internet no se envía nada y los datos siguen en el teléfono. Sin esas dos líneas la app compila igual y el botón no aparece.
 
+Si se cambia el código del script, hay que publicarlo como **nueva versión** de la misma implementación (*Implementar → Gestionar implementaciones → ✏️ → Versión: Nueva versión*). Así la URL no cambia. Una *Nueva implementación* genera otra URL, y entonces hay que actualizar `local.properties` y volver a compilar.
+
+| Mensaje al enviar | Causa y solución |
+|---|---|
+| «La hoja respondió con un error (403)» | La aplicación web no tiene acceso *Cualquier persona*. Cámbialo en la implementación. Con cuentas institucionales esa opción puede estar bloqueada; en ese caso usa una cuenta personal de Gmail |
+| «La clave no coincide con la del script» | `cybertura.sheets.token` es distinta de `CLAVE` en el script, o el script se editó sin publicar una nueva versión |
+| «La hoja no respondió como se esperaba…» o un error 404 | La URL ya no existe (se borró o se reemplazó la implementación) o no es la de la aplicación web. Copia la URL `/exec` actual |
+| «No hay conexión a internet…» | El teléfono no tiene internet. Los datos siguen guardados; vuelve a intentarlo después |
+
+La dirección del Apps Script es la que contiene `/macros/s/…/exec`. El enlace de tipo *library* que también muestra Google no sirve para esto.
+
 ## Privacidad
 
 CyberTura está pensada para menores de edad:
@@ -311,6 +322,7 @@ CyberTura está pensada para menores de edad:
 
 - [`app/docs/DOCUMENTACION_TECNICA.md`](app/docs/DOCUMENTACION_TECNICA.md): auditoría técnica completa (arquitectura, persistencia, seguridad, pruebas y trabajo futuro). Su cuerpo es del 6 de octubre de 2026; la sección inicial «Actualización de noviembre de 2026» resume lo que cambió desde entonces.
 - [`app/docs/CAPITULO_DISENO_ARQUITECTURA.md`](app/docs/CAPITULO_DISENO_ARQUITECTURA.md): capítulo de diseño de ingeniería, con la justificación de pasar de Unity a Kotlin nativo.
+- [`app/docs/google_sheets_script.gs`](app/docs/google_sheets_script.gs): Apps Script que recibe los resultados del modo investigador en Google Sheets (ver [Modo investigador](#modo-investigador)).
 - El documento final del proyecto de grado se entrega por separado a la universidad y no está en este repositorio.
 
 ## Autoría y créditos
