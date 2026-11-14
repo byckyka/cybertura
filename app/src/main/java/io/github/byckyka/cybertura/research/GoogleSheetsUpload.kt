@@ -49,25 +49,44 @@ object GoogleSheetsUpload {
     /** Hace el envío. Bloquea el hilo: no llamar en el hilo principal. */
     fun send(url: String, token: String, sheets: List<ReportSheet>): Result = runCatching {
         val body = payload(token, sheets).toByteArray(Charsets.UTF_8)
-        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+        val post = open(url).apply {
             requestMethod = "POST"
             doOutput = true
-            connectTimeout = 20_000
-            readTimeout = 60_000
-            // Apps Script responde con una redirección a la respuesta; se sigue sola
-            instanceFollowRedirects = true
             setRequestProperty("Content-Type", "application/json; charset=utf-8")
             setFixedLengthStreamingMode(body.size)
         }
         try {
-            conn.outputStream.use { it.write(body) }
-            val code = conn.responseCode
-            if (code !in 200..299) return Result.Failed("La hoja respondió con un error ($code).")
-            parseResponse(conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() })
+            post.outputStream.use { it.write(body) }
+            val code = post.responseCode
+            // Apps Script guarda los datos al recibir el POST y responde con una redirección a
+            // la respuesta, que se pide con GET. Se sigue a mano: con el envío por partes
+            // HttpURLConnection no la sigue solo.
+            if (code in 300..399) {
+                val location = post.getHeaderField("Location")
+                    ?: return Result.Failed("La hoja respondió con una redirección sin destino.")
+                return readResponse(open(URL(URL(url), location).toString()))
+            }
+            readResponse(post)
         } finally {
-            conn.disconnect()
+            post.disconnect()
         }
     }.getOrElse { Result.Failed("No hay conexión a internet o la dirección del script no es válida.") }
+
+    private fun open(url: String) = (URL(url).openConnection() as HttpURLConnection).apply {
+        connectTimeout = 20_000
+        readTimeout = 60_000
+    }
+
+    private fun readResponse(conn: HttpURLConnection): Result = try {
+        val code = conn.responseCode
+        if (code !in 200..299) {
+            Result.Failed("La hoja respondió con un error ($code).")
+        } else {
+            parseResponse(conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() })
+        }
+    } finally {
+        conn.disconnect()
+    }
 
     private fun json(value: String): String = buildString {
         append('"')
