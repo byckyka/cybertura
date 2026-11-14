@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cybertura"
+    namespace = "io.github.byckyka.cybertura"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.cybertura"
+        applicationId = "io.github.byckyka.cybertura"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -47,11 +47,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    implementation("androidx.navigation:navigation-compose:2.8.8")
-    implementation("androidx.datastore:datastore-preferences:1.1.2")
-    implementation("com.google.code.gson:gson:2.11.0")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.gson)
+    implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
