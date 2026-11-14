@@ -151,7 +151,7 @@
 </g>
 <rect width="1600" height="900" fill="url(#scanlines)" pointer-events="none"/>
 <rect width="1600" height="900" fill="url(#vignette)" pointer-events="none"/>
-<style></style>
+
 </svg>
 
 
