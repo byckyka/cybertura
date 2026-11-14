@@ -4,6 +4,12 @@
 
 
 
+https://github.com/user-attachments/assets/1518e25c-a358-4e6f-9e3a-534b86edf574
+
+
+
+
+
 
 Juego móvil educativo para Android que enseña conceptos básicos de **ciudadanía y seguridad digital** a niños de **11 a 12 años**. El jugador recorre una ciudad 2D en vista cenital y habla con ocho maestros. Cada uno le da una mini lección, un minijuego y una pregunta de situación real sobre su tema: contraseñas, phishing, privacidad, ciberacoso, redes sociales, dispositivos del hogar, malware y juegos en línea.
 
